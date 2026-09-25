@@ -1,0 +1,33 @@
+{
+  "generated": "2026-09-25T11:47:53.957Z",
+  "legs": [
+    {
+      "desktop": "/flight/desktop/leg-1.mp4",
+      "mobile": "/flight/mobile/leg-1.mp4",
+      "poster": "/flight/poster-1.webp",
+      "posterMobile": "/flight/poster-1-m.webp",
+      "duration": 8
+    },
+    {
+      "desktop": "/flight/desktop/leg-2.mp4",
+      "mobile": "/flight/mobile/leg-2.mp4",
+      "poster": "/flight/poster-2.webp",
+      "posterMobile": "/flight/poster-2-m.webp",
+      "duration": 6.7
+    },
+    {
+      "desktop": "/flight/desktop/leg-3.mp4",
+      "mobile": "/flight/mobile/leg-3.mp4",
+      "poster": "/flight/poster-3.webp",
+      "posterMobile": "/flight/poster-3-m.webp",
+      "duration": 8
+    },
+    {
+      "desktop": "/flight/desktop/leg-4.mp4",
+      "mobile": "/flight/mobile/leg-4.mp4",
+      "poster": "/flight/poster-4.webp",
+      "posterMobile": "/flight/poster-4-m.webp",
+      "duration": 8
+    }
+  ]
+}

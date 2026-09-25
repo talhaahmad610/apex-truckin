@@ -1,0 +1,204 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Check } from "lucide-react";
+import { SERVICES, STEPS } from "@/lib/constants";
+import { faqLd, pageMetadata, serviceLd } from "@/lib/seo";
+import { PageHero } from "@/components/sections/PageHero";
+import { PricingSection } from "@/components/sections/PricingSection";
+import { CTABannerSection } from "@/components/sections/CTABannerSection";
+import { RevealWrapper } from "@/components/ui/RevealWrapper";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { FAQAccordion } from "@/components/ui/FAQAccordion";
+import { Button } from "@/components/ui/Button";
+import { JsonLd } from "@/components/ui/JsonLd";
+import { TiltCard } from "@/components/3d/TiltCard";
+
+type Props = { params: Promise<{ slug: string }> };
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return SERVICES.map((s) => ({ slug: s.slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const s = SERVICES.find((x) => x.slug === slug);
+  if (!s) return {};
+  return pageMetadata({
+    title: `${s.name} Dispatch Services — ${s.tagline}`,
+    description: `${s.name} truck dispatch for owner-operators and fleets: ${s.short} Average rates ${s.avgRate}. 24/7 dispatch, no forced loads.`,
+    path: `/services/${s.slug}`,
+    image: s.image,
+  });
+}
+
+export default async function ServicePage({ params }: Props) {
+  const { slug } = await params;
+  const idx = SERVICES.findIndex((x) => x.slug === slug);
+  const s = SERVICES[idx];
+  if (!s) notFound();
+  const others = SERVICES.filter((x) => x.slug !== s.slug).slice(0, 3);
+  const faqs = [
+    ...s.faqs,
+    { q: `How much does ${s.name.toLowerCase()} dispatch cost?`, a: "Starter is 5% per load dispatched with no monthly fee. Professional is a flat $300 per truck per month. Enterprise fleets get custom pricing." },
+    { q: "Do you force dispatch?", a: "Never. Every load is sent to you for approval before it's booked." },
+  ];
+
+  return (
+    <>
+      <JsonLd data={[serviceLd(s), faqLd(faqs)]} />
+      <PageHero
+        eyebrow={`Service 0${idx + 1} / ${s.name}`}
+        title={
+          <>
+            {s.name} <span className="text-gradient">dispatch</span>
+          </>
+        }
+        subtitle={s.short + " " + s.tagline}
+        image={s.image}
+        crumbs={[
+          { name: "Services", path: "/services" },
+          { name: s.name, path: `/services/${s.slug}` },
+        ]}
+      >
+        <div className="flex flex-wrap items-center gap-4">
+          <Button href="/contact" size="lg">Dispatch My {s.name}</Button>
+          <span className="rounded-full border border-line bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber">Avg. {s.avgRate}</span>
+        </div>
+      </PageHero>
+
+      {/* What we do */}
+      <RevealWrapper as="section" className="py-24 md:py-36">
+        <div className="mx-auto grid max-w-[1320px] gap-12 px-4 sm:px-8 lg:grid-cols-12">
+          <div className="lg:col-span-6">
+            <SectionLabel n="01" label="What we do" />
+            <h2 data-reveal="up" className="mt-6 font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
+              {s.tagline}
+            </h2>
+            <p data-reveal="up" className="mt-6 text-lg leading-relaxed text-white/75">{s.description}</p>
+            <div data-reveal="up" className="mt-8">
+              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Typical loads</h3>
+              <ul className="flex flex-wrap gap-2">
+                {s.typicalLoads.map((l) => (
+                  <li key={l} className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/80">{l}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="grid gap-4 lg:col-span-6">
+            <div data-reveal="up" className="bezel">
+              <div className="bezel-core p-7 md:p-9">
+                <h3 className="font-display text-2xl font-bold uppercase">What&apos;s included</h3>
+                <ul className="mt-5 space-y-3">
+                  {s.included.map((x) => (
+                    <li key={x} className="flex gap-3 text-white/85">
+                      <Check className="mt-1 h-4 w-4 shrink-0 text-amber" strokeWidth={1.75} /> {x}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div data-reveal="up" className="bezel">
+              <div className="bezel-core p-7 md:p-9">
+                <h3 className="font-display text-2xl font-bold uppercase">Equipment requirements</h3>
+                <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {s.requirements.map((x) => (
+                    <li key={x} className="flex gap-3 text-sm text-white/80">
+                      <span aria-hidden className="mt-2 h-px w-3 shrink-0 bg-amber" /> {x}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </RevealWrapper>
+
+      {/* Benefits */}
+      <RevealWrapper as="section" className="relative isolate overflow-hidden py-24 md:py-36">
+        <Image src={s.image} alt="" fill sizes="100vw" className="-z-20 object-cover opacity-20" />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-bg via-bg/80 to-bg" />
+        <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
+          <SectionLabel n="02" label="Benefits" />
+          <h2 data-reveal="up" className="mb-12 mt-6 font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
+            Why carriers run {s.name.toLowerCase()} <span className="text-gradient">with Apex</span>
+          </h2>
+          <ul data-stagger-group className="grid gap-5 md:grid-cols-3">
+            {s.benefits.map((b, i) => (
+              <li key={b.title} data-stagger>
+                <TiltCard className="h-full rounded-[2rem]">
+                  <div className="bezel h-full">
+                    <div className="bezel-core h-full p-8">
+                      <span className="font-display text-5xl font-bold text-gradient">0{i + 1}</span>
+                      <h3 className="mt-6 font-display text-3xl font-bold uppercase">{b.title}</h3>
+                      <p className="mt-3 leading-relaxed text-muted">{b.body}</p>
+                    </div>
+                  </div>
+                </TiltCard>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </RevealWrapper>
+
+      {/* Process */}
+      <RevealWrapper as="section" className="py-24 md:py-36">
+        <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
+          <SectionLabel n="03" label="Process" />
+          <h2 data-reveal="up" className="mb-12 mt-6 font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
+            From call to <span className="text-gradient">first load</span>
+          </h2>
+          <ol data-stagger-group className="grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 md:grid-cols-4">
+            {STEPS.map((st) => (
+              <li key={st.n} data-stagger className="bg-[#0d0e14] p-8">
+                <span className="font-display text-sm font-semibold tracking-[0.3em] text-amber">STEP {st.n}</span>
+                <h3 className="mt-3 font-display text-3xl font-bold uppercase">{st.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{st.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </RevealWrapper>
+
+      <PricingSection />
+
+      {/* FAQ */}
+      <RevealWrapper as="section" className="py-24 md:py-32">
+        <div className="mx-auto grid max-w-[1320px] gap-12 px-4 sm:px-8 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <SectionLabel n="05" label="FAQ" />
+            <h2 data-reveal="up" className="mt-6 font-display text-[clamp(2.25rem,5vw,4rem)] font-bold uppercase leading-[0.92]">
+              {s.name} questions
+            </h2>
+            <div data-reveal="up" className="mt-10">
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Other services</p>
+              <ul className="space-y-2">
+                {others.map((o) => (
+                  <li key={o.slug}>
+                    <Link href={`/services/${o.slug}`} className="font-display text-2xl font-bold uppercase text-white/70 hover:text-amber">
+                      {o.name} →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div data-reveal="up" className="lg:col-span-8">
+            <FAQAccordion items={faqs} />
+          </div>
+        </div>
+      </RevealWrapper>
+
+      <CTABannerSection
+        title={
+          <>
+            Put your {s.name.toLowerCase()} <span className="text-gradient">to work.</span>
+          </>
+        }
+      />
+    </>
+  );
+}
