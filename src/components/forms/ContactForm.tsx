@@ -78,13 +78,39 @@ export function ContactForm({ className }: { className?: string }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className={cn("grid gap-5 sm:grid-cols-2", className)} aria-label="Contact Apex Truckin">
       <Field id="cf-full_name" label="Full name" error={errors.full_name?.message}>
-        <input id="cf-full_name" autoComplete="name" placeholder="Marcus Johnson" className={field} {...aria("full_name")} {...register("full_name")} />
+        <input
+          id="cf-full_name"
+          autoComplete="name"
+          placeholder="Marcus Johnson"
+          className={field}
+          suppressHydrationWarning
+          {...aria("full_name")}
+          {...register("full_name")}
+        />
       </Field>
       <Field id="cf-email" label="Email" error={errors.email?.message}>
-        <input id="cf-email" type="email" autoComplete="email" placeholder="you@company.com" className={field} {...aria("email")} {...register("email")} />
+        <input
+          id="cf-email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@company.com"
+          className={field}
+          suppressHydrationWarning
+          {...aria("email")}
+          {...register("email")}
+        />
       </Field>
       <Field id="cf-phone" label="Phone" optional error={errors.phone?.message}>
-        <input id="cf-phone" type="tel" autoComplete="tel" placeholder="(555) 555-0123" className={field} {...aria("phone")} {...register("phone")} />
+        <input
+          id="cf-phone"
+          type="tel"
+          autoComplete="tel"
+          placeholder="(555) 555-0123"
+          className={field}
+          suppressHydrationWarning
+          {...aria("phone")}
+          {...register("phone")}
+        />
       </Field>
       <Field id="cf-equipment_type" label="Equipment type" optional error={errors.equipment_type?.message}>
         <div className="relative">
@@ -107,6 +133,7 @@ export function ContactForm({ className }: { className?: string }) {
           rows={5}
           placeholder="Tell us about your truck, lanes and home-time goals…"
           className={cn(field, "resize-y")}
+          suppressHydrationWarning
           {...aria("message")}
           {...register("message")}
         />

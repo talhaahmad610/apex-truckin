@@ -38,6 +38,7 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
   const sectionRef = useRef<HTMLElement>(null);
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const lastSeekAtRefs = useRef<number[]>([]);
   const beatRefs = useRef<(HTMLDivElement | null)[]>([]);
   const barRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -133,7 +134,19 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
           if (i === idx) t = local * dur;
           else if (i === idx + 1 && o > 0) t = (local - (1 - SEAM)) * 0.25 * dur;
           else if (i < idx) t = dur - 0.05;
-          if (t >= 0 && !v.seeking && Math.abs(v.currentTime - t) > 1 / 90) v.currentTime = Math.min(t, dur - 0.05);
+          // Throttled by elapsed time, not just by distance: mobile hardware video
+          // decoders can't service seeks anywhere near as fast as desktop can. Firing
+          // a `currentTime` write on nearly every animation frame (the old distance-only
+          // guard was 1/90s-precision, i.e. ~continuous) outruns a phone's decoder during
+          // a fast scroll — each new seek interrupts the last before it resolves, so the
+          // video paints black for the whole gesture instead of freezing on a frame.
+          // Capping actual seeks to ~14/s keeps the decoder able to keep up.
+          const now = performance.now();
+          const lastSeekAt = lastSeekAtRefs.current[i] ?? 0;
+          if (t >= 0 && !v.seeking && Math.abs(v.currentTime - t) > 1 / 90 && now - lastSeekAt >= 70) {
+            v.currentTime = Math.min(t, dur - 0.05);
+            lastSeekAtRefs.current[i] = now;
+          }
         }
       }
       // Beats
@@ -231,10 +244,7 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
                   fetchPriority={i === 0 ? "high" : "low"}
                   loading={i === 0 ? "eager" : "lazy"}
                   decoding="async"
-                  className={cn(
-                    "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
-                    mode === "video" && ready[i] && "opacity-0",
-                  )}
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               </picture>
               {mode === "video" && (

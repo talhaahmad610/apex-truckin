@@ -44,6 +44,7 @@ export function NewsletterForm() {
           aria-invalid={Boolean(errors.email)}
           aria-describedby={errors.email ? "newsletter-error" : undefined}
           className="min-w-0 flex-1 bg-transparent px-4 text-sm text-white placeholder:text-white/35 focus:outline-none"
+          suppressHydrationWarning
           {...register("email")}
         />
         <button
