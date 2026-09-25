@@ -113,12 +113,12 @@ export default function ServicesPage() {
             Side by side
           </h2>
           <div data-reveal="up" className="bezel">
-            <div className="bezel-core overflow-x-auto">
+            <div className="bezel-core relative overflow-x-auto">
               <table className="w-full min-w-[860px] text-left text-sm">
                 <caption className="sr-only">Comparison of dispatch services by equipment type</caption>
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th scope="col" className="p-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Feature</th>
+                    <th scope="col" className="sticky left-0 z-10 bg-card p-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Feature</th>
                     {SERVICES.map((s) => (
                       <th key={s.slug} scope="col" className="p-5 font-display text-lg font-bold uppercase text-white">
                         <Link href={`/services/${s.slug}`} className="hover:text-amber">{s.name}</Link>
@@ -129,7 +129,7 @@ export default function ServicesPage() {
                 <tbody>
                   {COMPARE.map((row) => (
                     <tr key={row.key} className="border-b border-white/5 last:border-0">
-                      <th scope="row" className="p-5 font-medium text-white/80">{row.key}</th>
+                      <th scope="row" className="sticky left-0 z-10 bg-card p-5 font-medium text-white/80">{row.key}</th>
                       {SERVICES.map((s) => {
                         const v = row.get(s);
                         return (
@@ -150,6 +150,8 @@ export default function ServicesPage() {
                   ))}
                 </tbody>
               </table>
+              {/* Scroll affordance: hints that more columns exist off-screen on narrow viewports. */}
+              <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent md:hidden" />
             </div>
           </div>
         </div>

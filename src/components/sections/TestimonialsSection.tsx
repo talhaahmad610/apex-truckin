@@ -2,24 +2,31 @@ import { Suspense } from "react";
 import { getTestimonials } from "@/lib/api";
 import { TestimonialCard, TestimonialSkeleton } from "@/components/ui/TestimonialCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
-import { StaggerReveal } from "@/components/ui/StaggerReveal";
+import { TestimonialsCarousel } from "./TestimonialsCarousel";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Stars } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 async function TestimonialGrid() {
   const items = await getTestimonials();
   const avg = items.length ? items.reduce((a, t) => a + t.rating, 0) / items.length : 4.9;
   return (
     <>
-      <StaggerReveal as="div" className="columns-1 gap-5 md:columns-2 lg:columns-3 [&>*]:mb-5">
+      <TestimonialsCarousel count={items.length}>
         {items.map((t, i) => (
-          <div key={t.id} className={i === 1 ? "lg:pt-12" : undefined}>
+          <div
+            key={t.id}
+            className={cn(
+              "w-[85%] shrink-0 snap-center sm:w-[65%] md:w-auto md:shrink md:snap-none",
+              i === 1 && "lg:pt-12",
+            )}
+          >
             <TestimonialCard t={t} />
           </div>
         ))}
-      </StaggerReveal>
+      </TestimonialsCarousel>
       <Reveal as="div" className="mt-10 bezel">
         <div className="bezel-core flex flex-col items-center justify-between gap-6 p-7 text-center md:flex-row md:p-9 md:text-left">
           <div className="flex flex-col items-center gap-5 md:flex-row">
@@ -49,9 +56,11 @@ export function TestimonialsSection() {
         </div>
         <Suspense
           fallback={
-            <div className="columns-1 gap-5 md:columns-2 lg:columns-3">
+            <div className="no-scrollbar -mx-4 flex gap-5 overflow-x-auto px-4 md:mx-0 md:block md:columns-2 md:overflow-visible md:px-0 lg:columns-3">
               {[0, 1, 2].map((i) => (
-                <TestimonialSkeleton key={i} />
+                <div key={i} className="w-[85%] shrink-0 sm:w-[65%] md:w-auto md:shrink">
+                  <TestimonialSkeleton />
+                </div>
               ))}
             </div>
           }

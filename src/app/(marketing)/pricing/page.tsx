@@ -49,12 +49,12 @@ export default function PricingPage() {
             Every feature, <span className="text-gradient">side by side</span>
           </h2>
           <div data-reveal="up" className="bezel">
-            <div className="bezel-core overflow-x-auto">
+            <div className="bezel-core relative overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <caption className="sr-only">Feature comparison of Starter, Professional and Enterprise plans</caption>
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th scope="col" className="p-5 text-left text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Feature</th>
+                    <th scope="col" className="sticky left-0 z-10 bg-card p-5 text-left text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Feature</th>
                     <th scope="col" className="p-5 text-center font-display text-xl font-bold uppercase">Starter</th>
                     <th scope="col" className="bg-amber/[0.06] p-5 text-center font-display text-xl font-bold uppercase text-amber">Professional</th>
                     <th scope="col" className="p-5 text-center font-display text-xl font-bold uppercase">Enterprise</th>
@@ -63,7 +63,7 @@ export default function PricingPage() {
                 <tbody>
                   {PRICING_COMPARISON.map((r) => (
                     <tr key={r.feature} className="border-b border-white/5 last:border-0">
-                      <th scope="row" className="p-5 text-left font-normal text-white/80">{r.feature}</th>
+                      <th scope="row" className="sticky left-0 z-10 bg-card p-5 text-left font-normal text-white/80">{r.feature}</th>
                       <td className="p-5 text-center"><Cell v={r.starter} /></td>
                       <td className="bg-amber/[0.04] p-5 text-center"><Cell v={r.pro} /></td>
                       <td className="p-5 text-center"><Cell v={r.ent} /></td>
@@ -71,6 +71,8 @@ export default function PricingPage() {
                   ))}
                 </tbody>
               </table>
+              {/* Scroll affordance: hints that more columns exist off-screen on narrow viewports. */}
+              <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent md:hidden" />
             </div>
           </div>
         </div>

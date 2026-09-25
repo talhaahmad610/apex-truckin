@@ -24,9 +24,15 @@ const nextConfig: NextConfig = {
     // Next.js needs 'unsafe-inline' for script-src (its own hydration bootstrap and the
     // JSON-LD <script> tags) and style-src (inline styles from GSAP/Framer Motion) short of
     // a nonce-based setup via middleware. frame-src allows the Google Maps embed on /contact.
+    //
+    // 'unsafe-eval' is added in dev ONLY: `next dev`'s webpack HMR wraps every module in
+    // eval(...) by default, and without this the browser throws "EvalError: ... violates
+    // ... script-src" on every load, breaking client-side JS across the whole app in dev.
+    // Production bundles never use eval() for their own code, so this stays out of prod.
+    const isDev = process.env.NODE_ENV !== "production";
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https://images.pexels.com https://images.unsplash.com https://*.supabase.co",
       "font-src 'self' data:",
