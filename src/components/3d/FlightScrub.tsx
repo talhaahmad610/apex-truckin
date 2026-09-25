@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import { prefersReducedMotion } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 export interface FlightLeg {
@@ -163,23 +163,41 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
       raf = active && current !== target ? requestAnimationFrame(loop) : 0;
     };
 
-    const st = ScrollTrigger.create({
-      trigger: section,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self) => {
-        target = self.progress;
-        active = true;
-        if (!raf) raf = requestAnimationFrame(loop);
-      },
-      onToggle: (self) => {
-        active = self.isActive;
-      },
-    });
-    target = current = st.progress;
+    // Progress is computed directly from scroll position on every scroll event, rather than
+    // via ScrollTrigger's start/end abstraction. The section is a plain CSS `position: sticky`
+    // stage (not GSAP `pin: true`), which naturally starts unsticking once scroll reaches
+    // (sectionHeight - viewportHeight) — well before the section's true end. Mapping progress
+    // across the full section height left the final ~1 viewport of scroll "dead": the stage
+    // would slide off-screen mid-animation, painting nothing (the section's own empty box)
+    // until the true bottom — a black gap.
+    //
+    // Deliberately NOT `-section.getBoundingClientRect().top`: for a sticky element that's
+    // rect.top stays clamped at its stuck offset (0) for the entire stuck phase — it only
+    // starts changing during the brief unstick tail — so it doesn't track scroll position
+    // linearly the way it would for a normally-flowing element. `window.scrollY` against the
+    // section's own layout position does, and needs nothing rendering-mode-specific to read
+    // correctly. document.documentElement.clientHeight (not window.innerHeight): some mobile
+    // browser/emulation contexts report a "layout viewport" innerHeight larger than the
+    // actual visual viewport CSS `dvh`/`sticky` render against; clientHeight matches it.
+    const computeProgress = () => {
+      const vh = document.documentElement.clientHeight;
+      const total = section.offsetHeight - vh;
+      if (total <= 0) return 1;
+      return Math.min(1, Math.max(0, (window.scrollY - section.offsetTop) / total));
+    };
+    const onScroll = () => {
+      target = computeProgress();
+      active = true;
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(section);
+    target = current = computeProgress();
     render(current);
     return () => {
-      st.kill();
+      window.removeEventListener("scroll", onScroll);
+      ro.disconnect();
       cancelAnimationFrame(raf);
     };
   }, [legs, beats.length, mode, ready]);
