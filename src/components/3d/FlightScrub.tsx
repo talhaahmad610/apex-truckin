@@ -38,7 +38,6 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
   const sectionRef = useRef<HTMLElement>(null);
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-  const lastSeekAtRefs = useRef<number[]>([]);
   const beatRefs = useRef<(HTMLDivElement | null)[]>([]);
   const barRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -128,36 +127,13 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
           layer.style.opacity = String(o);
           layer.style.visibility = o > 0 && i >= idx - 1 ? "visible" : "hidden";
           const v = videoRefs.current[i];
-          if (!v || mode !== "video") continue;
-          const hasFrame = v.readyState >= 2;
-          // Structural guarantee, independent of the seek throttle below: whatever this
-          // device's decoder does while it has no current frame (`seeking`, or readyState
-          // having dropped back below HAVE_CURRENT_DATA mid-seek on some browsers — paint
-          // black, paint garbage, whatever its GPU decode pipeline does mid-flush), the
-          // video is never actually shown during it. The poster `<img>` underneath is a
-          // permanent, already-decoded, always-correct base layer, so hiding the video for
-          // that instant reveals the poster instead of a black flash — no CSS transition
-          // on this element, the toggle has to be instant, not faded.
-          v.style.opacity = ready[i] && hasFrame && !v.seeking ? "1" : "0";
-          if (!hasFrame) continue;
+          if (!v || mode !== "video" || v.readyState < 2) continue;
           const dur = v.duration || legs[i]!.duration;
           let t = -1;
           if (i === idx) t = local * dur;
           else if (i === idx + 1 && o > 0) t = (local - (1 - SEAM)) * 0.25 * dur;
           else if (i < idx) t = dur - 0.05;
-          // Throttled by elapsed time, not just by distance: mobile hardware video
-          // decoders can't service seeks anywhere near as fast as desktop can. Firing
-          // a `currentTime` write on nearly every animation frame (the old distance-only
-          // guard was 1/90s-precision, i.e. ~continuous) outruns a phone's decoder during
-          // a fast scroll — each new seek interrupts the last before it resolves, so the
-          // video paints black for the whole gesture instead of freezing on a frame.
-          // Capping actual seeks to under ~8/s keeps slower decoders able to keep up.
-          const now = performance.now();
-          const lastSeekAt = lastSeekAtRefs.current[i] ?? 0;
-          if (t >= 0 && !v.seeking && Math.abs(v.currentTime - t) > 1 / 90 && now - lastSeekAt >= 120) {
-            v.currentTime = Math.min(t, dur - 0.05);
-            lastSeekAtRefs.current[i] = now;
-          }
+          if (t >= 0 && !v.seeking && Math.abs(v.currentTime - t) > 1 / 90) v.currentTime = Math.min(t, dur - 0.05);
         }
       }
       // Beats
@@ -255,7 +231,10 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
                   fetchPriority={i === 0 ? "high" : "low"}
                   loading={i === 0 ? "eager" : "lazy"}
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className={cn(
+                    "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+                    mode === "video" && ready[i] && "opacity-0",
+                  )}
                 />
               </picture>
               {mode === "video" && (
@@ -269,8 +248,10 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
                   disablePictureInPicture
                   aria-hidden
                   tabIndex={-1}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  style={{ opacity: 0 }}
+                  className={cn(
+                    "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+                    ready[i] ? "opacity-100" : "opacity-0",
+                  )}
                 />
               )}
             </div>

@@ -4,8 +4,9 @@ import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 export function PricingSection({ withHeading = true }: { withHeading?: boolean }) {
+  // overflow-x-clip: the 60rem glow would widen the page on phones and break the hero's sticky stage on touch scroll
   return (
-    <RevealWrapper as="section" id="pricing" className="relative py-24 md:py-40">
+    <RevealWrapper as="section" id="pricing" className="relative overflow-x-clip py-24 md:py-40">
       <div aria-hidden className="absolute left-1/2 top-1/3 -z-10 h-[40rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(245,166,35,0.08),transparent_65%)]" />
       <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
         {withHeading && (

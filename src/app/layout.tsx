@@ -54,6 +54,9 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
+  // Keeps the mobile layout viewport equal to the visual viewport; otherwise any element wider
+  // than the screen lets touch scrolling pan the viewport and visibly un-pins `position: sticky`.
+  minimumScale: 1,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -11,6 +11,21 @@ const supabaseHost = (() => {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  webpack(config, { dev }) {
+    // playwright-cli writes logs/snapshots into ./.playwright-cli while a dev server is up;
+    // without this, each write triggers a rebuild whose console output triggers the next one.
+    if (dev) {
+      // webpack's schema allows a RegExp OR string[] here, never a mix — Next's default is a RegExp.
+      const cur = config.watchOptions?.ignored;
+      const extra = /[\\/]\.playwright-cli[\\/]/;
+      const ignored =
+        cur instanceof RegExp
+          ? new RegExp(`${cur.source}|${extra.source}`, cur.flags)
+          : [...(Array.isArray(cur) ? cur : typeof cur === "string" ? [cur] : []), "**/.playwright-cli/**"];
+      config.watchOptions = { ...config.watchOptions, ignored };
+    }
+    return config;
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
