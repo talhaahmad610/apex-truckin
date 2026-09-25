@@ -21,6 +21,24 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // Next.js needs 'unsafe-inline' for script-src (its own hydration bootstrap and the
+    // JSON-LD <script> tags) and style-src (inline styles from GSAP/Framer Motion) short of
+    // a nonce-based setup via middleware. frame-src allows the Google Maps embed on /contact.
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https://images.pexels.com https://images.unsplash.com https://*.supabase.co",
+      "font-src 'self' data:",
+      // 'blob:' is required: the hero video plays from URL.createObjectURL() blobs, not files.
+      "media-src 'self' blob:",
+      `connect-src 'self'${supabaseHost ? ` https://${supabaseHost}` : ""} https://*.supabase.co`,
+      "frame-src https://www.google.com",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join("; ");
     return [
       {
         source: "/:path*",
@@ -29,6 +47,10 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy", value: csp },
+          // Harmless over plain HTTP (browsers only honor HSTS on HTTPS responses) — takes
+          // effect automatically once this is served over HTTPS in production.
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
       {

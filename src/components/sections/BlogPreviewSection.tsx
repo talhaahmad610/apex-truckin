@@ -2,19 +2,20 @@ import { Suspense } from "react";
 import { getFeaturedPosts } from "@/lib/api";
 import { BlogCard, BlogCardSkeleton } from "@/components/ui/BlogCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
+import { StaggerReveal } from "@/components/ui/StaggerReveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Button } from "@/components/ui/Button";
 
 async function LatestPosts() {
   const posts = await getFeaturedPosts(3);
   return (
-    <ul data-stagger-group className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <StaggerReveal as="ul" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {posts.map((p) => (
-        <li key={p.id} data-stagger>
+        <li key={p.id}>
           <BlogCard post={p} />
         </li>
       ))}
-    </ul>
+    </StaggerReveal>
   );
 }
 

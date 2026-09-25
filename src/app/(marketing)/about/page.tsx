@@ -81,9 +81,9 @@ export default function AboutPage() {
         <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-bg via-bg/80 to-bg" />
         <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
           <SectionLabel n="02" label="Mission & values" />
-          <p data-reveal="up" className="mt-6 max-w-4xl font-display text-[clamp(2rem,4.5vw,4rem)] font-bold uppercase leading-[0.95]">
+          <h2 data-reveal="up" className="mt-6 max-w-4xl font-display text-[clamp(2rem,4.5vw,4rem)] font-bold uppercase leading-[0.95]">
             Our mission: make every independent carrier as profitable as the <span className="text-gradient">biggest fleets.</span>
-          </p>
+          </h2>
           <ul data-stagger-group className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {VALUES.map((v, i) => (
               <li key={v.title} data-stagger>

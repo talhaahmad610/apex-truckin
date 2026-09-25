@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { MarqueeTicker } from "@/components/sections/MarqueeTicker";
 import { StatsSection } from "@/components/sections/StatsSection";
@@ -14,9 +14,13 @@ import { ContactSection } from "@/components/sections/ContactSection";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
+export const metadata = pageMetadata({
+  // Root layout's title template appends "| Apex Truckin" — don't repeat the brand here.
+  title: "Truck Dispatch Services for Owner-Operators & Fleets",
+  description:
+    "24/7 truck dispatch for owner-operators and fleets: dry van, flatbed, reefer, hotshot, step deck, power only and box truck. Higher-paying loads, no forced dispatch, all 48 states.",
+  path: "/",
+});
 
 export default function HomePage() {
   return (

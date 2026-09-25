@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { getTestimonials } from "@/lib/api";
 import { TestimonialCard, TestimonialSkeleton } from "@/components/ui/TestimonialCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
+import { StaggerReveal } from "@/components/ui/StaggerReveal";
+import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Stars } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -11,14 +13,14 @@ async function TestimonialGrid() {
   const avg = items.length ? items.reduce((a, t) => a + t.rating, 0) / items.length : 4.9;
   return (
     <>
-      <div data-stagger-group className="columns-1 gap-5 md:columns-2 lg:columns-3 [&>*]:mb-5">
+      <StaggerReveal as="div" className="columns-1 gap-5 md:columns-2 lg:columns-3 [&>*]:mb-5">
         {items.map((t, i) => (
-          <div key={t.id} data-stagger className={i === 1 ? "lg:pt-12" : undefined}>
+          <div key={t.id} className={i === 1 ? "lg:pt-12" : undefined}>
             <TestimonialCard t={t} />
           </div>
         ))}
-      </div>
-      <div data-reveal="up" className="mt-10 bezel">
+      </StaggerReveal>
+      <Reveal as="div" className="mt-10 bezel">
         <div className="bezel-core flex flex-col items-center justify-between gap-6 p-7 text-center md:flex-row md:p-9 md:text-left">
           <div className="flex flex-col items-center gap-5 md:flex-row">
             <p className="font-display text-7xl font-bold leading-none text-gradient">{Math.min(avg, 4.9).toFixed(1)}★</p>
@@ -30,7 +32,7 @@ async function TestimonialGrid() {
           </div>
           <Button href="/contact">Join Them</Button>
         </div>
-      </div>
+      </Reveal>
     </>
   );
 }

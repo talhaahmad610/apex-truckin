@@ -45,6 +45,9 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
   const [mode, setMode] = useState<"video" | "poster">("video");
 
   // Decide playback mode + load clips as blobs, sequentially (leg 1 first = fastest first paint).
+  // Legs 2+ don't start fetching until leg 1 has actually decoded a frame (or a short timeout
+  // elapses), so the first leg never has to share bandwidth with the rest of the chain during
+  // the critical initial-paint window.
   useEffect(() => {
     if (!legs.length) return;
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
@@ -58,6 +61,7 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
 
     (async () => {
       for (let i = 0; i < legs.length; i++) {
+        if (ctrl.signal.aborted) return;
         const leg = legs[i]!;
         try {
           const res = await fetch(mobile ? leg.mobile : leg.desktop, { signal: ctrl.signal });
@@ -66,13 +70,22 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
           urls.push(url);
           const v = videoRefs.current[i];
           if (!v) continue;
+          const loaded = new Promise<void>((resolve) => {
+            v.addEventListener(
+              "loadeddata",
+              () => {
+                setReady((r) => r.map((x, j) => (j === i ? true : x)));
+                resolve();
+              },
+              { once: true },
+            );
+          });
           v.src = url;
-          v.addEventListener(
-            "loadeddata",
-            () => setReady((r) => r.map((x, j) => (j === i ? true : x))),
-            { once: true },
-          );
           v.load();
+          if (i === 0) {
+            // Give the hero leg a head start before the rest of the chain competes for bandwidth.
+            await Promise.race([loaded, new Promise((resolve) => window.setTimeout(resolve, 2500))]);
+          }
         } catch (err) {
           if ((err as Error).name === "AbortError") return;
           console.warn("[FlightScrub] leg failed to load, keeping poster", i, err);

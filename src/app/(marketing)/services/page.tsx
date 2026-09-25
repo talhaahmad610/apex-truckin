@@ -2,13 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
 import { SERVICES } from "@/lib/constants";
-import { pageMetadata } from "@/lib/seo";
+import { collectionLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
 import { MarqueeTicker } from "@/components/sections/MarqueeTicker";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Button } from "@/components/ui/Button";
+import { JsonLd } from "@/components/ui/JsonLd";
 import { TiltCard } from "@/components/3d/TiltCard";
 
 export const metadata = pageMetadata({
@@ -30,6 +31,14 @@ const COMPARE = [
 export default function ServicesPage() {
   return (
     <>
+      <JsonLd
+        data={collectionLd({
+          name: "Truck Dispatch Services",
+          description: "Dispatch services by equipment type: dry van, flatbed, reefer, hotshot, step deck, power only and box truck.",
+          path: "/services",
+          items: SERVICES.map((s) => ({ name: `${s.name} Dispatch`, path: `/services/${s.slug}`, image: s.image })),
+        })}
+      />
       <PageHero
         eyebrow="Services"
         title={

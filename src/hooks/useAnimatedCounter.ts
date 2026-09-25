@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 export function useAnimatedCounter(target: number, { duration = 1800, decimals = 0 } = {}) {
   const ref = useRef<HTMLSpanElement | null>(null);
-  const [value, setValue] = useState(0);
+  // Start at the real target, not 0: this is what search/AI crawlers and no-JS clients see
+  // in the server-rendered HTML. The element is off-screen at mount (that's the whole point
+  // of the scroll-triggered reveal below), so nobody ever sees this value on screen — it only
+  // resets to 0 once the element is about to scroll into view, right before the count-up runs.
+  const [value, setValue] = useState(target);
 
   useEffect(() => {
     const el = ref.current;

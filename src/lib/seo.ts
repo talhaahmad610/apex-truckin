@@ -43,6 +43,22 @@ export function pageMetadata({
 
 /* ───────────────────────── JSON-LD builders ───────────────────────── */
 
+/**
+ * Next.js renders each `<JsonLd>` call as its own separate `<script>` tag (no shared
+ * `@graph`), so a bare `{"@id": "...#organization"}` reference in one script can't resolve
+ * against the full Organization node defined in a different script on the same page. Every
+ * builder below inlines this minimal, self-contained stand-in (kept in sync with
+ * `organizationLd()`'s own `@id`/name/logo) instead of a bare reference, so each block is
+ * valid on its own regardless of how a given parser handles multiple JSON-LD scripts.
+ */
+const ORG_REF = {
+  "@id": `${SITE_URL}/#organization`,
+  "@type": ["Organization", "LocalBusiness"],
+  name: COMPANY.name,
+  logo: absoluteUrl("/icon.svg"),
+};
+const WEBSITE_REF = { "@id": `${SITE_URL}/#website`, "@type": "WebSite", name: COMPANY.name };
+
 export const organizationLd = () => ({
   "@context": "https://schema.org",
   "@type": ["Organization", "LocalBusiness"],
@@ -82,7 +98,10 @@ export const organizationLd = () => ({
     hoursAvailable: "Mo-Su 00:00-23:59",
   },
   sameAs: Object.values(COMPANY.socials),
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", bestRating: "5", reviewCount: "5" },
+  // No aggregateRating here: a self-issued rating on your own Organization/LocalBusiness
+  // (not sourced from a verifiable third-party review platform) violates Google's structured
+  // data guidelines and risks a manual action. Re-add only once backed by real Review nodes
+  // or a genuine third-party source (Google Business Profile, Trustpilot, etc).
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Truck dispatch services",
@@ -99,7 +118,7 @@ export const websiteLd = () => ({
   "@id": `${SITE_URL}/#website`,
   url: SITE_URL,
   name: COMPANY.name,
-  publisher: { "@id": `${SITE_URL}/#organization` },
+  publisher: ORG_REF,
   inLanguage: "en-US",
 });
 
@@ -112,6 +131,37 @@ export const breadcrumbLd = (items: { name: string; path: string }[]) => ({
     name: it.name,
     item: absoluteUrl(it.path),
   })),
+});
+
+/** CollectionPage + ItemList for a listing page (e.g. /services, /blog). */
+export const collectionLd = ({
+  name,
+  description,
+  path,
+  items,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  items: { name: string; path: string; image?: string }[];
+}) => ({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": absoluteUrl(`${path}#collection`),
+  name,
+  description,
+  url: absoluteUrl(path),
+  isPartOf: WEBSITE_REF,
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: it.name,
+      url: absoluteUrl(it.path),
+      ...(it.image ? { image: absoluteUrl(it.image) } : {}),
+    })),
+  },
 });
 
 export const faqLd = (faqs: FAQ[]) => ({
@@ -129,10 +179,15 @@ export const serviceLd = (s: Service) => ({
   description: s.description,
   url: absoluteUrl(`/services/${s.slug}`),
   image: absoluteUrl(s.image),
-  provider: { "@id": `${SITE_URL}/#organization` },
+  provider: ORG_REF,
   areaServed: { "@type": "Country", name: "United States" },
   offers: [
-    { "@type": "Offer", name: "Starter", description: "5% per load dispatched", priceCurrency: "USD" },
+    {
+      "@type": "Offer",
+      name: "Starter",
+      description: "5% per load dispatched",
+      priceSpecification: { "@type": "UnitPriceSpecification", price: "5", priceCurrency: "USD", unitText: "percent per load dispatched" },
+    },
     { "@type": "Offer", name: "Professional", price: "300", priceCurrency: "USD", description: "Per truck per month" },
   ],
 });
@@ -145,9 +200,11 @@ export const articleLd = (p: Post) => ({
   description: p.meta_description ?? p.excerpt ?? undefined,
   image: p.cover_image_url ? absoluteUrl(p.cover_image_url) : absoluteUrl(OG_DEFAULT),
   datePublished: p.published_at,
-  dateModified: p.published_at,
+  // No dateModified: the Post type has no real "last edited" timestamp distinct from
+  // published_at, and repeating datePublished here would be a meaningless, always-identical
+  // freshness signal. Add a genuine updated_at column before reintroducing this field.
   author: { "@type": "Person", name: p.author },
-  publisher: { "@id": `${SITE_URL}/#organization` },
+  publisher: ORG_REF,
   mainEntityOfPage: absoluteUrl(`/blog/${p.slug}`),
   articleSection: p.category,
   timeRequired: `PT${p.read_time}M`,
