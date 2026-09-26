@@ -23,7 +23,12 @@ export function CoverageMapSection() {
       const tilt = el.querySelector<HTMLElement>("[data-tilt]");
       if (!main || !truck || !tilt) return;
       const len = main.getTotalLength();
-      const placeTruck = (p: number) => {
+      let lastP = -1;
+      const placeTruck = (p: number, force = false) => {
+        // Scrub fires onUpdate on every scroll tick; skip the two getPointAtLength lookups (and
+        // the attribute write) when progress hasn't moved enough to change the rendered position.
+        if (!force && Math.abs(p - lastP) < 0.0008) return;
+        lastP = p;
         const at = Math.max(0.001, Math.min(len - 0.001, p * len));
         const pt = main.getPointAtLength(at);
         const ahead = main.getPointAtLength(Math.min(len, at + 2));
@@ -85,57 +90,70 @@ export function CoverageMapSection() {
 
         <div ref={root} className="[perspective:1600px]">
           <div data-tilt className="relative mx-auto max-w-[1080px] origin-center [transform-style:preserve-3d]" style={{ transform: "rotateX(20deg)" }}>
-            <svg viewBox={USA_VIEWBOX} className="h-auto w-full overflow-visible" role="img" aria-labelledby="map-title map-desc">
-              <title id="map-title">Apex Truckin coverage map</title>
-              <desc id="map-desc">A map of the contiguous United States showing a dispatch route from Los Angeles through Phoenix, Dallas, Kansas City and Chicago to New York.</desc>
-              <defs>
-                <linearGradient id="route-grad" x1="0" x2="1">
-                  <stop offset="0" stopColor="#f5a623" />
-                  <stop offset="1" stopColor="#e85d04" />
-                </linearGradient>
-                <pattern id="map-dots" width="12" height="12" patternUnits="userSpaceOnUse">
-                  <circle cx="6" cy="6" r="1.1" fill="rgba(245,166,35,0.28)" />
-                </pattern>
-                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="4" result="b" />
-                  <feMerge>
-                    <feMergeNode in="b" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {/* depth shadow */}
-              <path d={USA_PATH} fill="rgba(0,0,0,0.6)" transform="translate(0 18)" style={{ filter: "blur(10px)" }} />
-              <path d={USA_PATH} fill="#10121b" stroke="rgba(245,166,35,0.35)" strokeWidth="1.2" />
-              <path d={USA_PATH} fill="url(#map-dots)" />
-              {sideDs.map((d) => (
-                <path key={d} d={d} fill="none" stroke="rgba(245,166,35,0.22)" strokeWidth="1.2" strokeDasharray="4 6" />
-              ))}
-              <path d={mainD} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
-              <path data-main d={mainD} fill="none" stroke="url(#route-grad)" strokeWidth="3.2" strokeLinecap="round" filter="url(#glow)" />
-              {cityKeys.map((k) => {
-                const [x, y] = cityXY(k);
-                const main = MAIN_ROUTE.includes(k);
-                return (
-                  <g key={k} data-city>
-                    <circle cx={x} cy={y} r={main ? 11 : 7} fill="rgba(245,166,35,0.12)" />
-                    <circle cx={x} cy={y} r={main ? 4 : 3} fill={main ? "#f5a623" : "#a0aec0"} />
-                    <text x={x + 10} y={y - 10} fill="rgba(255,255,255,0.72)" fontSize="13" fontWeight="500" style={{ letterSpacing: "0.06em" }}>
-                      {CITIES[k].name.toUpperCase()}
-                    </text>
+            <div className="relative">
+              {/* Static land mass (shadow blur + fill + dot texture) never changes after paint —
+                  split into its own SVG so the truck/route updates below don't force the browser
+                  to repaint this much larger, filter-heavy layer on every scroll tick. */}
+              <svg viewBox={USA_VIEWBOX} className="h-auto w-full overflow-visible" aria-hidden>
+                <defs>
+                  <pattern id="map-dots" width="12" height="12" patternUnits="userSpaceOnUse">
+                    <circle cx="6" cy="6" r="1.1" fill="rgba(245,166,35,0.28)" />
+                  </pattern>
+                </defs>
+                <path d={USA_PATH} fill="rgba(0,0,0,0.6)" transform="translate(0 18)" style={{ filter: "blur(10px)" }} />
+                <path d={USA_PATH} fill="#10121b" stroke="rgba(245,166,35,0.35)" strokeWidth="1.2" />
+                <path d={USA_PATH} fill="url(#map-dots)" />
+              </svg>
+              <svg
+                viewBox={USA_VIEWBOX}
+                className="absolute inset-0 h-full w-full overflow-visible"
+                role="img"
+                aria-labelledby="map-title map-desc"
+              >
+                <title id="map-title">Apex Truckin coverage map</title>
+                <desc id="map-desc">A map of the contiguous United States showing a dispatch route from Los Angeles through Phoenix, Dallas, Kansas City and Chicago to New York.</desc>
+                <defs>
+                  <linearGradient id="route-grad" x1="0" x2="1">
+                    <stop offset="0" stopColor="#f5a623" />
+                    <stop offset="1" stopColor="#e85d04" />
+                  </linearGradient>
+                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="4" result="b" />
+                    <feMerge>
+                      <feMergeNode in="b" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                {sideDs.map((d) => (
+                  <path key={d} d={d} fill="none" stroke="rgba(245,166,35,0.22)" strokeWidth="1.2" strokeDasharray="4 6" />
+                ))}
+                <path d={mainD} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
+                <path data-main d={mainD} fill="none" stroke="url(#route-grad)" strokeWidth="3.2" strokeLinecap="round" filter="url(#glow)" />
+                {cityKeys.map((k) => {
+                  const [x, y] = cityXY(k);
+                  const main = MAIN_ROUTE.includes(k);
+                  return (
+                    <g key={k} data-city>
+                      <circle cx={x} cy={y} r={main ? 11 : 7} fill="rgba(245,166,35,0.12)" />
+                      <circle cx={x} cy={y} r={main ? 4 : 3} fill={main ? "#f5a623" : "#a0aec0"} />
+                      <text x={x + 10} y={y - 10} fill="rgba(255,255,255,0.72)" fontSize="13" fontWeight="500" style={{ letterSpacing: "0.06em" }}>
+                        {CITIES[k].name.toUpperCase()}
+                      </text>
+                    </g>
+                  );
+                })}
+                <g data-truck>
+                  <circle r="16" fill="rgba(245,166,35,0.25)" filter="url(#glow)" />
+                  <g transform="translate(-11 -7)">
+                    <rect x="0" y="1" width="14" height="11" rx="1.5" fill="#f5a623" />
+                    <path d="M14 4 h4.5 l3.5 4 v4 h-8z" fill="#e85d04" />
+                    <circle cx="4" cy="13" r="2" fill="#0a0a0f" stroke="#f5a623" strokeWidth="1" />
+                    <circle cx="17" cy="13" r="2" fill="#0a0a0f" stroke="#f5a623" strokeWidth="1" />
                   </g>
-                );
-              })}
-              <g data-truck>
-                <circle r="16" fill="rgba(245,166,35,0.25)" filter="url(#glow)" />
-                <g transform="translate(-11 -7)">
-                  <rect x="0" y="1" width="14" height="11" rx="1.5" fill="#f5a623" />
-                  <path d="M14 4 h4.5 l3.5 4 v4 h-8z" fill="#e85d04" />
-                  <circle cx="4" cy="13" r="2" fill="#0a0a0f" stroke="#f5a623" strokeWidth="1" />
-                  <circle cx="17" cy="13" r="2" fill="#0a0a0f" stroke="#f5a623" strokeWidth="1" />
                 </g>
-              </g>
-            </svg>
+              </svg>
+            </div>
           </div>
         </div>
 

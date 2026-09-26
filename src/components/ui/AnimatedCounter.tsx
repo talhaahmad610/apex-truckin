@@ -20,12 +20,12 @@ export function AnimatedCounter({
   decimals?: number;
   className?: string;
 }) {
-  const { ref, display } = useAnimatedCounter(value, { decimals });
+  const { containerRef, valueRef } = useAnimatedCounter(value, { decimals });
   const final = `${value.toFixed(decimals)}${suffix}`;
   return (
-    <span ref={ref} className={className} aria-label={final}>
-      <span aria-hidden className="tabular-nums">
-        {display}
+    <span ref={containerRef} className={className} aria-label={final}>
+      <span ref={valueRef} aria-hidden className="tabular-nums">
+        {value.toFixed(decimals)}
       </span>
       {suffix && (
         <span aria-hidden className="ml-1 whitespace-nowrap text-[0.45em] font-medium normal-case tracking-normal text-muted">

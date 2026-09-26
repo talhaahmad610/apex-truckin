@@ -44,19 +44,26 @@ export function DepthLayers({
       <div data-depth="0.6" className="absolute -right-[15%] top-[30%] h-[45vmax] w-[45vmax] rounded-full bg-[radial-gradient(circle,rgba(232,93,4,0.14),transparent_60%)]" />
       {grid && (
         <div className="absolute inset-x-0 bottom-0 h-[55%] [perspective:600px]">
+          {/* Vertical lines never moved in the original single-layer version either (background-
+              position for this layer was held at a constant "0 0") — split out so only the
+              horizontal-line layer below needs to animate. */}
           <div
             className="absolute inset-x-[-50%] bottom-[-10%] h-[160%] origin-bottom [transform:rotateX(72deg)] [mask-image:linear-gradient(to_top,#000_10%,transparent_75%)]"
-            style={{
-              background:
-                "repeating-linear-gradient(90deg, rgba(245,166,35,0.22) 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, rgba(245,166,35,0.16) 0 1px, transparent 1px 80px)",
-              animation: "grid-flow 2.4s linear infinite",
-            }}
+            style={{ background: "repeating-linear-gradient(90deg, rgba(245,166,35,0.22) 0 1px, transparent 1px 80px)" }}
+          />
+          {/* Same motion as the old `background-position` keyframe, but as a `transform` so it
+              composites: translate is evaluated before rotateX in the transform list (rightmost
+              function first), matching how background-position shifted the flat pattern before
+              the 3D tilt was applied. */}
+          <div
+            className="absolute inset-x-[-50%] bottom-[-10%] h-[160%] origin-bottom [animation:grid-flow-fx_2.4s_linear_infinite] [mask-image:linear-gradient(to_top,#000_10%,transparent_75%)]"
+            style={{ background: "repeating-linear-gradient(0deg, rgba(245,166,35,0.16) 0 1px, transparent 1px 80px)" }}
           />
           <div className="absolute inset-x-0 bottom-[42%] h-px bg-gradient-to-r from-transparent via-amber/60 to-transparent shadow-[0_0_40px_6px_rgba(245,166,35,0.35)]" />
         </div>
       )}
       {particles && <div data-depth="1"><Particles /></div>}
-      <style>{`@keyframes grid-flow { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 80px; } }`}</style>
+      <style>{`@keyframes grid-flow-fx { from { transform: rotateX(72deg) translate3d(0, 0, 0); } to { transform: rotateX(72deg) translate3d(0, 80px, 0); } }`}</style>
     </div>
   );
 }

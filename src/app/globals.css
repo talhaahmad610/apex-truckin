@@ -212,6 +212,28 @@ body {
 .prose-apex th, .prose-apex td { border-bottom: 1px solid var(--hairline); padding: 0.75rem 0.5rem; text-align: left; }
 .prose-apex th { color: var(--text); font-weight: 600; }
 
+/* Skip style/layout/paint for these sections until they near the viewport — safe here because
+   none of them run continuous scroll-position math of their own (unlike HowItWorksSection or
+   CoverageMapSection, which drive GSAP scrub timelines and need to stay laid out). The
+   `contain-intrinsic-size` values are only a first-paint placeholder — the browser remembers
+   each section's true rendered size afterward, so exact precision isn't required; unsupported
+   in a given browser, this is a no-op and the section just always renders (no visual effect
+   either way). IntersectionObserver-driven reveals (RevealWrapper/StaggerReveal) still fire
+   correctly as a section approaches the viewport. */
+#pricing, #insights, #testimonials, #contact, footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1350px;
+}
+#testimonials { contain-intrinsic-size: auto 1500px; }
+footer { contain-intrinsic-size: auto 1000px; }
+@media (max-width: 767px) {
+  #pricing { contain-intrinsic-size: auto 2400px; }
+  #insights { contain-intrinsic-size: auto 2200px; }
+  #testimonials { contain-intrinsic-size: auto 1200px; }
+  #contact { contain-intrinsic-size: auto 1850px; }
+  footer { contain-intrinsic-size: auto 1400px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

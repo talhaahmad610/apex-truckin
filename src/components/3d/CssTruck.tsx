@@ -128,13 +128,18 @@ export function CssTruck({ className, style, interactive = true }: { className?:
           className="absolute [transform-style:preserve-3d]"
           style={{ transform: "translate3d(0, 30px, 0) rotateX(90deg)" }}
         >
+          {/* Cross-tie layer held static (background-position for it was constant "0 0" before too) */}
           <div
             className="absolute left-[-900px] top-[-450px] h-[900px] w-[1800px] [mask-image:radial-gradient(ellipse_at_center,#000_20%,transparent_70%)]"
-            style={{
-              background:
-                "repeating-linear-gradient(90deg, rgba(245,166,35,0.55) 0 2px, transparent 2px 90px), repeating-linear-gradient(0deg, rgba(245,166,35,0.18) 0 1px, transparent 1px 90px)",
-              animation: "road-move 1.2s linear infinite",
-            }}
+            style={{ background: "repeating-linear-gradient(0deg, rgba(245,166,35,0.18) 0 1px, transparent 1px 90px)" }}
+          />
+          {/* Lane-line layer: same -90px/cycle shift as the old background-position keyframe,
+              done as a `transform` (composited) instead — the box is far larger than the masked
+              viewing area, so translating the whole element by one tile period is indistinguishable
+              from shifting its background. */}
+          <div
+            className="absolute left-[-900px] top-[-450px] h-[900px] w-[1800px] [animation:road-move-fx_1.2s_linear_infinite] [mask-image:radial-gradient(ellipse_at_center,#000_20%,transparent_70%)]"
+            style={{ background: "repeating-linear-gradient(90deg, rgba(245,166,35,0.55) 0 2px, transparent 2px 90px)" }}
           />
           {/* contact shadow */}
           <div className="absolute left-[-300px] top-[-90px] h-[180px] w-[640px] rounded-[50%] bg-black/70 blur-2xl" />
@@ -280,7 +285,7 @@ export function CssTruck({ className, style, interactive = true }: { className?:
         )}
       </div>
 
-      <style>{`@keyframes road-move { from { background-position: 0 0, 0 0; } to { background-position: -90px 0, 0 0; } }`}</style>
+      <style>{`@keyframes road-move-fx { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-90px, 0, 0); } }`}</style>
     </div>
   );
 }

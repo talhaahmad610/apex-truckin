@@ -2,20 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { NAV_LINKS, COMPANY } from "@/lib/constants";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "./Logo";
-import { MobileMenu } from "./MobileMenu";
+
+// Renders nothing until opened, and pulls in framer-motion — keep it (and framer-motion) out
+// of every page's initial JS. Prefetched on idle below so the first tap still opens instantly.
+const loadMobileMenu = () => import("./MobileMenu");
+const MobileMenu = dynamic(() => loadMobileMenu().then((m) => m.MobileMenu), { ssr: false });
 
 export function Navbar() {
-  const { scrolled, progress } = useScrollProgress(40);
+  const { scrolled, progressRef } = useScrollProgress(40);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    const idle =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(loadMobileMenu, { timeout: 2000 })
+        : window.setTimeout(loadMobileMenu, 1000);
+    return () => (typeof window.requestIdleCallback === "function" ? window.cancelIdleCallback : window.clearTimeout)(idle);
+  }, []);
 
   return (
     <>
@@ -93,14 +106,15 @@ export function Navbar() {
               </span>
             </button>
           </div>
-          {/* scroll progress hairline */}
+          {/* scroll progress hairline — transform written directly by useScrollProgress, not React state */}
           <span
+            ref={progressRef as React.RefObject<HTMLSpanElement>}
             aria-hidden
             className={cn(
               "pointer-events-none absolute inset-x-8 -bottom-px h-px origin-left bg-grad transition-opacity duration-500",
               scrolled ? "opacity-70" : "opacity-0",
             )}
-            style={{ transform: `scaleX(${progress})` }}
+            style={{ transform: "scaleX(0)" }}
           />
         </nav>
       </header>

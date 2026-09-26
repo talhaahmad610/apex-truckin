@@ -1,18 +1,33 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** Perspective hover tilt with a moving glare highlight. Transform-only. */
 export function TiltCard({ children, className, max = 8 }: { children: ReactNode; className?: string; max?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
+  // Cached on pointerenter/resize instead of read on every pointermove — getBoundingClientRect
+  // forces layout, and mousemove can fire far more often than a card's position ever changes.
+  const rectRef = useRef<DOMRect | null>(null);
 
+  useEffect(() => {
+    const onResize = () => {
+      rectRef.current = null;
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const onEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
+    rectRef.current = ref.current?.getBoundingClientRect() ?? null;
+  };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse") return;
     const el = ref.current;
     if (!el) return;
-    const r = el.getBoundingClientRect();
+    const r = rectRef.current ?? (rectRef.current = el.getBoundingClientRect());
     const px = (e.clientX - r.left) / r.width;
     const py = (e.clientY - r.top) / r.height;
     cancelAnimationFrame(frame.current);
@@ -34,6 +49,7 @@ export function TiltCard({ children, className, max = 8 }: { children: ReactNode
     <div className="[perspective:1100px]">
       <div
         ref={ref}
+        onPointerEnter={onEnter}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
         className={cn(

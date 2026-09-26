@@ -28,6 +28,8 @@ const smooth = (v: number) => {
   return t * t * (3 - 2 * t);
 };
 const SEAM = 0.14; // fraction of a leg spent crossfading into the next
+// scripts/process-footage.mjs encodes at 30fps; seeking finer than one source frame shows the same frame.
+const SOURCE_FPS = 30;
 
 /**
  * Scroll-scrubbed "camera flight". Scroll position drives `currentTime` on a chain of
@@ -59,7 +61,37 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
     const ctrl = new AbortController();
     const urls: string[] = [];
 
-    (async () => {
+    // The clips are only needed once scrolling starts (at rest the poster IS frame 0), so the
+    // fetch chain waits for first interaction or post-load idle instead of competing with
+    // LCP-critical resources during initial load.
+    const wakeEvents = ["scroll", "wheel", "touchstart", "pointerdown", "keydown"] as const;
+    let started = false;
+    let idleHandle = 0;
+    let idleIsTimeout = false;
+    const onLoad = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleHandle = window.requestIdleCallback(start, { timeout: 1500 });
+      } else {
+        idleIsTimeout = true;
+        idleHandle = window.setTimeout(start, 300);
+      }
+    };
+    const detachTriggers = () => {
+      wakeEvents.forEach((e) => window.removeEventListener(e, start));
+      window.removeEventListener("load", onLoad);
+      if (idleHandle) (idleIsTimeout ? window.clearTimeout : window.cancelIdleCallback)(idleHandle);
+    };
+    function start() {
+      if (started) return;
+      started = true;
+      detachTriggers();
+      void loadLegs();
+    }
+    wakeEvents.forEach((e) => window.addEventListener(e, start, { passive: true }));
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad, { once: true });
+
+    async function loadLegs() {
       for (let i = 0; i < legs.length; i++) {
         if (ctrl.signal.aborted) return;
         const leg = legs[i]!;
@@ -91,9 +123,10 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
           console.warn("[FlightScrub] leg failed to load, keeping poster", i, err);
         }
       }
-    })();
+    }
 
     return () => {
+      detachTriggers();
       ctrl.abort();
       urls.forEach((u) => URL.revokeObjectURL(u));
     };
@@ -133,7 +166,7 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
           if (i === idx) t = local * dur;
           else if (i === idx + 1 && o > 0) t = (local - (1 - SEAM)) * 0.25 * dur;
           else if (i < idx) t = dur - 0.05;
-          if (t >= 0 && !v.seeking && Math.abs(v.currentTime - t) > 1 / 90) v.currentTime = Math.min(t, dur - 0.05);
+          if (t >= 0 && !v.seeking && Math.abs(v.currentTime - t) > 1 / SOURCE_FPS) v.currentTime = Math.min(t, dur - 0.05);
         }
       }
       // Beats
@@ -153,7 +186,8 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
         if (dot) dot.dataset.active = String(Math.floor(Math.min(p * nBeats, nBeats - 1e-4)) === j);
       }
       if (barRef.current) barRef.current.style.transform = `scaleY(${p.toFixed(4)})`;
-      section.style.setProperty("--flight-p", p.toFixed(4));
+      // Only the CSS `fallback` stage (no footage installed) reads this custom property.
+      if (fallback) section.style.setProperty("--flight-p", p.toFixed(4));
     };
 
     const loop = () => {
@@ -179,28 +213,44 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
     // correctly. document.documentElement.clientHeight (not window.innerHeight): some mobile
     // browser/emulation contexts report a "layout viewport" innerHeight larger than the
     // actual visual viewport CSS `dvh`/`sticky` render against; clientHeight matches it.
+    //
+    // offsetTop/offsetHeight/clientHeight are cached here and refreshed only on resize/layout
+    // change (ResizeObserver + `resize`), not read on every scroll event — reading layout
+    // geometry from a passive scroll handler that fires 60+ times/sec is the classic forced-
+    // reflow trap once anything upstream has invalidated layout that frame.
+    let cachedTop = 0;
+    let cachedTotal = 0;
+    const refreshMetrics = () => {
+      cachedTop = section.offsetTop;
+      cachedTotal = section.offsetHeight - document.documentElement.clientHeight;
+    };
     const computeProgress = () => {
-      const vh = document.documentElement.clientHeight;
-      const total = section.offsetHeight - vh;
-      if (total <= 0) return 1;
-      return Math.min(1, Math.max(0, (window.scrollY - section.offsetTop) / total));
+      if (cachedTotal <= 0) return 1;
+      return Math.min(1, Math.max(0, (window.scrollY - cachedTop) / cachedTotal));
     };
     const onScroll = () => {
       target = computeProgress();
       active = true;
       if (!raf) raf = requestAnimationFrame(loop);
     };
+    const onResize = () => {
+      refreshMetrics();
+      onScroll();
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    const ro = new ResizeObserver(onScroll);
+    window.addEventListener("resize", onResize, { passive: true });
+    const ro = new ResizeObserver(onResize);
     ro.observe(section);
+    refreshMetrics();
     target = current = computeProgress();
     render(current);
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
       ro.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [legs, beats.length, mode, ready]);
+  }, [legs, beats.length, mode, ready, fallback]);
 
   return (
     <section

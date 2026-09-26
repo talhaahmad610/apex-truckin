@@ -1,22 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
+/**
+ * Drives the count-up by writing `textContent` straight to `valueRef`'s node inside the rAF
+ * loop instead of `setState` (previously a React re-render on every one of ~110 frames per
+ * counter). `containerRef` is the IntersectionObserver target that triggers the run.
+ */
 export function useAnimatedCounter(target: number, { duration = 1800, decimals = 0 } = {}) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  // Start at the real target, not 0: this is what search/AI crawlers and no-JS clients see
-  // in the server-rendered HTML. The element is off-screen at mount (that's the whole point
-  // of the scroll-triggered reveal below), so nobody ever sees this value on screen — it only
-  // resets to 0 once the element is about to scroll into view, right before the count-up runs.
-  const [value, setValue] = useState(target);
+  const containerRef = useRef<HTMLSpanElement | null>(null);
+  const valueRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = containerRef.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setValue(target);
-      return;
-    }
+    // Reduced motion: leave the server-rendered final value in place (see AnimatedCounter.tsx).
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let raf = 0;
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -26,7 +25,7 @@ export function useAnimatedCounter(target: number, { duration = 1800, decimals =
         const step = (now: number) => {
           const t = Math.min(1, (now - start) / duration);
           const eased = 1 - Math.pow(1 - t, 4);
-          setValue(target * eased);
+          if (valueRef.current) valueRef.current.textContent = (target * eased).toFixed(decimals);
           if (t < 1) raf = requestAnimationFrame(step);
         };
         raf = requestAnimationFrame(step);
@@ -38,7 +37,7 @@ export function useAnimatedCounter(target: number, { duration = 1800, decimals =
       io.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [target, duration]);
+  }, [target, duration, decimals]);
 
-  return { ref, display: value.toFixed(decimals) };
+  return { containerRef, valueRef };
 }

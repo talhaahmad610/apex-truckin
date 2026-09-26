@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, Geist } from "next/font/google";
-import { Toaster } from "sonner";
 import { SmoothScroll } from "@/components/3d/SmoothScroll";
 import { JsonLd } from "@/components/ui/JsonLd";
+import { LazyToaster } from "@/components/layout/LazyToaster";
 import { COMPANY } from "@/lib/constants";
 import { SITE_URL, organizationLd, websiteLd } from "@/lib/seo";
 import "./globals.css";
@@ -10,7 +10,9 @@ import "./globals.css";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 const barlow = Barlow_Condensed({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  // 800 is loaded but never actually rendered anywhere on the site (verified exhaustively,
+  // including inherited weight/font-family through JSX ancestors) — 500/600/700 all are.
+  weight: ["500", "600", "700"],
   variable: "--font-barlow",
   display: "swap",
 });
@@ -66,7 +68,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <JsonLd data={[organizationLd(), websiteLd()]} />
         <SmoothScroll />
         {children}
-        <Toaster
+        <LazyToaster
           position="bottom-right"
           theme="dark"
           toastOptions={{
