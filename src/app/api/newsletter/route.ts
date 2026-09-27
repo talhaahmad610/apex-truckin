@@ -1,9 +1,11 @@
 import type { NextRequest } from "next/server";
-import { createServerSupabase } from "@/lib/supabase";
 import { newsletterSchema } from "@/lib/schemas";
-import { PG_UNIQUE_VIOLATION, error, json, rateLimit, readJson, zodDetails } from "@/lib/http";
+import { error, json, rateLimit, readJson, zodDetails } from "@/lib/http";
+import { getPayloadClient } from "@/lib/payload";
 
 export const dynamic = "force-dynamic";
+
+const SUBSCRIBED = "Subscribed! Watch your inbox for weekly lane intel.";
 
 /** POST /api/newsletter — subscribe an email. Idempotent for existing subscribers. */
 export async function POST(req: NextRequest) {
@@ -14,17 +16,36 @@ export async function POST(req: NextRequest) {
   if (!result.success) return error(422, "Validation failed", zodDetails(result.error));
   const email = result.data.email.toLowerCase();
 
-  const sb = createServerSupabase();
-  if (!sb) {
-    if (process.env.NODE_ENV === "production") return error(503, "Newsletter storage is not configured");
-    console.info("[newsletter] Supabase not configured — subscriber (dev only):", email);
-    return json({ message: "Subscribed! Watch your inbox for weekly lane intel.", stored: false }, 201);
+  try {
+    const payload = await getPayloadClient();
+    const existing = await payload.find({
+      collection: "subscribers",
+      where: { email: { equals: email } },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    });
+    const current = existing.docs[0];
+    if (current) {
+      // Re-subscribing after an unsubscribe reactivates; otherwise it's a no-op.
+      if (current.status !== "active") {
+        await payload.update({ collection: "subscribers", id: current.id, data: { status: "active" }, overrideAccess: true });
+        return json({ message: SUBSCRIBED }, 200);
+      }
+      return json({ message: "You're already subscribed — thanks!" }, 200);
+    }
+    await payload.create({
+      collection: "subscribers",
+      overrideAccess: true,
+      data: { email, status: "active", source: result.data.source_path || null },
+    });
+    return json({ message: SUBSCRIBED }, 201);
+  } catch (err) {
+    // Two simultaneous signups for the same email: the unique index rejects the second insert.
+    if ((err as { name?: string }).name === "ValidationError") {
+      return json({ message: "You're already subscribed — thanks!" }, 200);
+    }
+    console.error("[newsletter] failed to subscribe", err);
+    return error(500, "Failed to subscribe");
   }
-
-  const { error: dbError } = await sb.from("newsletter_subscribers").insert({ email });
-  if (dbError) {
-    if (dbError.code === PG_UNIQUE_VIOLATION) return json({ message: "You're already subscribed — thanks!" }, 200);
-    return error(500, "Failed to subscribe", dbError.message);
-  }
-  return json({ message: "Subscribed! Watch your inbox for weekly lane intel." }, 201);
 }

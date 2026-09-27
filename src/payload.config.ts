@@ -9,6 +9,9 @@ import sharp from "sharp";
 
 import { Users } from "./payload/collections/Users";
 import { Media } from "./payload/collections/Media";
+import { Leads } from "./payload/collections/Leads";
+import { Subscribers } from "./payload/collections/Subscribers";
+import { Notifications } from "./payload/globals/Notifications";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -29,6 +32,9 @@ export default buildConfig({
     // Built-in avatar instead of Gravatar (no third-party request leaking a hash of the admin email).
     avatar: "default",
     importMap: { baseDir: path.resolve(dirname) },
+    components: {
+      beforeDashboard: ["/payload/components/CrmOverview#CrmOverview"],
+    },
     meta: {
       titleSuffix: " · Apex Truckin CMS",
       robots: "noindex, nofollow",
@@ -37,13 +43,15 @@ export default buildConfig({
   // Only accept cookie-authenticated requests originating from the site itself.
   csrf: [siteURL],
   cors: [siteURL],
-  collections: [Users, Media],
+  collections: [Leads, Subscribers, Media, Users],
+  globals: [Notifications],
   editor: lexicalEditor(),
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || "" },
     migrationDir: path.resolve(dirname, "migrations"),
-    // Dev auto-syncs the schema; production only changes via committed migrations.
-    push: process.env.NODE_ENV !== "production",
+    // Schema changes ONLY via committed migrations (npm run migrate:create / migrate), in dev too —
+    // dev-mode push drifts from the migration history and makes `payload migrate` prompt/hang.
+    push: false,
   }),
   sharp,
   email: process.env.RESEND_API_KEY

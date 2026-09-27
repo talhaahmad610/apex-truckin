@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+// Page a form was submitted from (lead source tracking). Only a same-site path is accepted.
+const sourcePath = z
+  .string()
+  .trim()
+  .max(200)
+  .regex(/^\/[\w\-/]*$/)
+  .optional()
+  .or(z.literal(""));
+
 export const contactSchema = z.object({
   full_name: z.string().trim().min(2, "Please enter your full name").max(120),
   email: z.string().trim().email("Enter a valid email address").max(200),
@@ -14,11 +23,13 @@ export const contactSchema = z.object({
   message: z.string().trim().max(3000, "Message is too long").optional().or(z.literal("")),
   // Honeypot — must stay empty
   company_website: z.string().max(0).optional().or(z.literal("")),
+  source_path: sourcePath,
 });
 export type ContactFormValues = z.infer<typeof contactSchema>;
 
 export const newsletterSchema = z.object({
   email: z.string().trim().email("Enter a valid email address").max(200),
+  source_path: sourcePath,
 });
 export type NewsletterFormValues = z.infer<typeof newsletterSchema>;
 
