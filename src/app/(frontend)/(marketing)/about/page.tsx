@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { COMPANY, STATS, TEAM, VALUES, CARRIER_BENEFITS } from "@/lib/constants";
+import { STATS, VALUES, CARRIER_BENEFITS } from "@/lib/constants";
+import { getSiteSettings, getTeam } from "@/lib/cms";
 import { pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
@@ -9,7 +10,7 @@ import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { TiltCard } from "@/components/3d/TiltCard";
 import { ParallaxImage } from "@/components/3d/ParallaxImage";
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "About Apex Truckin — Dispatchers Who've Driven the Miles",
   description:
     "Founded in Dallas in 2019 by a former owner-operator, Apex Truckin dispatches 500+ loads a month for carriers across all 48 states. Meet the team and our values.",
@@ -23,7 +24,8 @@ const TIMELINE = [
   { year: "2025", title: "500+ loads a month", body: "Apex now dispatches for carriers in all 48 states with a 4.9★ average rating." },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [COMPANY, TEAM] = await Promise.all([getSiteSettings(), getTeam()]);
   return (
     <>
       <PageHero
@@ -117,7 +119,7 @@ export default function AboutPage() {
                     <div className="relative aspect-square overflow-hidden">
                       <Image
                         src={m.image}
-                        alt={`Portrait of ${m.name}, ${m.role}`}
+                        alt={m.imageAlt || `Portrait of ${m.name}, ${m.role}`}
                         fill
                         sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover object-top grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"

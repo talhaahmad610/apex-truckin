@@ -58,6 +58,35 @@ export interface Service {
   avgRate: string;
   typicalLoads: string[];
   faqs: FAQ[];
+  comparison: { cdl: "yes" | "no" | "depends"; tarpPay: boolean; permits: boolean; tempMonitoring: boolean; dropHook: boolean };
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface TeamMember {
+  name: string;
+  role: string;
+  image: string;
+  imageAlt: string;
+  bio: string;
+}
+
+/** Company details, navigation and footer copy (Payload "Site settings" global). */
+export interface SiteInfo {
+  name: string;
+  legalName: string;
+  tagline: string;
+  subTagline: string;
+  founded: number;
+  phone: string;
+  phoneHref: string;
+  email: string;
+  whatsapp: string;
+  address: { street: string; city: string; region: string; postal: string; country: string };
+  hours: { days: string; time: string }[];
+  socials: { facebook: string; instagram: string; linkedin: string; x: string };
+  nav: NavLink[];
+  footer: { headline: string; highlight: string; newsletterLabel: string; bottomLine: string; legalLinks: NavLink[]; image: string | null };
 }
 
 export interface FAQ {

@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
-import { COMPANY, NAV_LINKS } from "@/lib/constants";
+import type { NavSite } from "./Navbar";
 import { Button } from "@/components/ui/Button";
 import { getLenis } from "@/components/3d/SmoothScroll";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
-export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function MobileMenu({ open, onClose, site }: { open: boolean; onClose: () => void; site: NavSite }) {
   useEffect(() => {
     const lenis = getLenis();
     if (open) {
@@ -41,7 +41,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
         >
           <nav aria-label="Mobile" className="flex-1">
             <ul className="space-y-1">
-              {NAV_LINKS.map((l, i) => (
+              {site.nav.map((l, i) => (
                 <li key={l.href} className="overflow-hidden">
                   <motion.div
                     initial={{ y: 48, opacity: 0 }}
@@ -73,8 +73,8 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
               Start Dispatching
             </Button>
             <div className="flex items-center justify-between text-sm text-muted">
-              <a href={COMPANY.phoneHref} className="hover:text-amber">{COMPANY.phone}</a>
-              <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-amber">
+              <a href={site.phoneHref} className="hover:text-amber">{site.phone}</a>
+              <a href={site.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-amber">
                 <WhatsAppIcon className="h-4 w-4" /> WhatsApp
               </a>
             </div>

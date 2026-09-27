@@ -16,6 +16,7 @@ const media = (() => {
   }
 })();
 const mediaOrigin = media ? media.origin : "";
+const isLoopbackMedia = !!media && ["localhost", "127.0.0.1", "[::1]"].includes(media.hostname);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -42,9 +43,11 @@ const nextConfig: NextConfig = {
           ]
         : []),
     ],
-    // Next 16 refuses to optimize images from local/private IPs (SSRF guard). Local MinIO is on
-    // 127.0.0.1, so allow it in development only — production media sits behind a public host.
-    dangerouslyAllowLocalIP: isDev,
+    // Next 16 refuses to optimize images from local/private IPs (SSRF guard). Allowed only when the
+    // media host itself is loopback (local MinIO — also for `next start` on a dev machine); a real
+    // deployment serves media from a public hostname, so this stays off there. remotePatterns
+    // above still limits the optimizer to that single media origin either way.
+    dangerouslyAllowLocalIP: isDev || isLoopbackMedia,
   },
   async headers() {
     // Public site CSP. Next.js needs 'unsafe-inline' for script-src (its own hydration bootstrap and

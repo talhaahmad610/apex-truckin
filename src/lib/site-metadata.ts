@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { COMPANY } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/cms";
 import { SITE_URL } from "@/lib/seo";
 
-export const siteMetadata: Metadata = {
+export async function getSiteMetadata(): Promise<Metadata> {
+  const COMPANY = await getSiteSettings();
+  return {
   metadataBase: new URL(SITE_URL),
   title: {
     default: `${COMPANY.name} — Truck Dispatch Services for Owner-Operators & Fleets`,
@@ -34,7 +36,8 @@ export const siteMetadata: Metadata = {
   twitter: { card: "summary_large_image", site: "@apextruckin" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   category: "transportation",
-};
+  };
+}
 
 export const siteViewport: Viewport = {
   themeColor: "#0a0a0f",

@@ -1,4 +1,5 @@
 import { pageMetadata } from "@/lib/seo";
+import { getServices } from "@/lib/cms";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { MarqueeTicker } from "@/components/sections/MarqueeTicker";
 import { StatsSection } from "@/components/sections/StatsSection";
@@ -14,7 +15,7 @@ import { ContactSection } from "@/components/sections/ContactSection";
 
 export const revalidate = 300;
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   // Root layout's title template appends "| Apex Truckin" — don't repeat the brand here.
   title: "Truck Dispatch Services for Owner-Operators & Fleets",
   description:
@@ -22,14 +23,15 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
-export default function HomePage() {
+export default async function HomePage() {
+  const services = await getServices();
   return (
     <>
       <HeroSection />
       <MarqueeTicker />
       <StatsSection />
       <AboutSection />
-      <ServicesSection />
+      <ServicesSection services={services} />
       <HowItWorksSection />
       <CoverageMapSection />
       <PricingSection />

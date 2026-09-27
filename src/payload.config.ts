@@ -14,6 +14,12 @@ import { Subscribers } from "./payload/collections/Subscribers";
 import { Notifications } from "./payload/globals/Notifications";
 import { Posts } from "./payload/collections/Posts";
 import { Categories } from "./payload/collections/Categories";
+import { Services } from "./payload/collections/Services";
+import { Testimonials } from "./payload/collections/Testimonials";
+import { Team } from "./payload/collections/Team";
+import { Faqs } from "./payload/collections/Faqs";
+import { PricingTiers } from "./payload/collections/PricingTiers";
+import { SiteSettings } from "./payload/globals/SiteSettings";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -45,8 +51,8 @@ export default buildConfig({
   // Only accept cookie-authenticated requests originating from the site itself.
   csrf: [siteURL],
   cors: [siteURL],
-  collections: [Leads, Subscribers, Posts, Categories, Media, Users],
-  globals: [Notifications],
+  collections: [Leads, Subscribers, Services, PricingTiers, Testimonials, Faqs, Team, Posts, Categories, Media, Users],
+  globals: [SiteSettings, Notifications],
   editor: lexicalEditor(),
   // Runs queued jobs (scheduled publishing; hero video processing) inside the long-running Node
   // server. Needs a persistent process — fine on the planned VPS, not on serverless.

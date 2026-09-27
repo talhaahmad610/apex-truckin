@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { COMPANY, SERVICES } from "./constants";
 import { absoluteUrl } from "./utils";
-import type { FAQ, Post, Service } from "@/types";
+import { getSiteSettings } from "./cms";
+import type { FAQ, Post, PricingTier, Service, SiteInfo } from "@/types";
 
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://apextruckin.com").replace(/\/$/, "");
 const OG_DEFAULT = "/images/og-default.jpg";
 
-export function pageMetadata({
+export async function pageMetadata({
   title,
   description,
   path,
@@ -22,7 +22,8 @@ export function pageMetadata({
   type?: "website" | "article";
   publishedTime?: string;
   authors?: string[];
-}): Metadata {
+}): Promise<Metadata> {
+  const site = await getSiteSettings();
   return {
     title,
     description,
@@ -32,7 +33,7 @@ export function pageMetadata({
       url: path,
       title,
       description,
-      siteName: COMPANY.name,
+      siteName: site.name,
       locale: "en_US",
       images: [{ url: image, width: 1200, height: 630, alt: title }],
       ...(type === "article" ? { publishedTime, authors } : {}),
@@ -51,36 +52,42 @@ export function pageMetadata({
  * `organizationLd()`'s own `@id`/name/logo) instead of a bare reference, so each block is
  * valid on its own regardless of how a given parser handles multiple JSON-LD scripts.
  */
-const ORG_REF = {
+const orgRef = (site: SiteInfo) => ({
   "@id": `${SITE_URL}/#organization`,
   "@type": ["Organization", "LocalBusiness"],
-  name: COMPANY.name,
+  name: site.name,
   logo: absoluteUrl("/icon.svg"),
+});
+const websiteRef = (site: SiteInfo) => ({ "@id": `${SITE_URL}/#website`, "@type": "WebSite", name: site.name });
+// Schema.org telephone, e.g. "+1-888-000-0000" for North American numbers (E.164 otherwise).
+const tel = (site: SiteInfo) => {
+  const e164 = site.phoneHref.replace(/^tel:/, "");
+  const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(e164);
+  return m ? `+1-${m[1]}-${m[2]}-${m[3]}` : e164;
 };
-const WEBSITE_REF = { "@id": `${SITE_URL}/#website`, "@type": "WebSite", name: COMPANY.name };
 
-export const organizationLd = () => ({
+export const organizationLd = (site: SiteInfo, services: Service[]) => ({
   "@context": "https://schema.org",
   "@type": ["Organization", "LocalBusiness"],
   "@id": `${SITE_URL}/#organization`,
-  name: COMPANY.name,
-  legalName: COMPANY.legalName,
+  name: site.name,
+  legalName: site.legalName,
   url: SITE_URL,
   logo: absoluteUrl("/icon.svg"),
   image: absoluteUrl(OG_DEFAULT),
-  slogan: COMPANY.tagline,
-  description: COMPANY.subTagline,
-  telephone: "+1-888-000-0000",
-  email: COMPANY.email,
-  foundingDate: String(COMPANY.founded),
+  slogan: site.tagline,
+  description: site.subTagline,
+  telephone: tel(site),
+  email: site.email,
+  foundingDate: String(site.founded),
   priceRange: "$$",
   address: {
     "@type": "PostalAddress",
-    streetAddress: COMPANY.address.street,
-    addressLocality: COMPANY.address.city,
-    addressRegion: COMPANY.address.region,
-    postalCode: COMPANY.address.postal,
-    addressCountry: COMPANY.address.country,
+    streetAddress: site.address.street,
+    addressLocality: site.address.city,
+    addressRegion: site.address.region,
+    postalCode: site.address.postal,
+    addressCountry: site.address.country,
   },
   areaServed: { "@type": "Country", name: "United States" },
   openingHoursSpecification: {
@@ -91,13 +98,13 @@ export const organizationLd = () => ({
   },
   contactPoint: {
     "@type": "ContactPoint",
-    telephone: "+1-888-000-0000",
+    telephone: tel(site),
     contactType: "customer service",
     areaServed: "US",
     availableLanguage: ["English", "Spanish"],
     hoursAvailable: "Mo-Su 00:00-23:59",
   },
-  sameAs: Object.values(COMPANY.socials),
+  sameAs: Object.values(site.socials).filter(Boolean),
   // No aggregateRating here: a self-issued rating on your own Organization/LocalBusiness
   // (not sourced from a verifiable third-party review platform) violates Google's structured
   // data guidelines and risks a manual action. Re-add only once backed by real Review nodes
@@ -105,20 +112,20 @@ export const organizationLd = () => ({
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Truck dispatch services",
-    itemListElement: SERVICES.map((s) => ({
+    itemListElement: services.map((s) => ({
       "@type": "Offer",
       itemOffered: { "@type": "Service", name: `${s.name} Dispatch`, url: absoluteUrl(`/services/${s.slug}`) },
     })),
   },
 });
 
-export const websiteLd = () => ({
+export const websiteLd = (site: SiteInfo) => ({
   "@context": "https://schema.org",
   "@type": "WebSite",
   "@id": `${SITE_URL}/#website`,
   url: SITE_URL,
-  name: COMPANY.name,
-  publisher: ORG_REF,
+  name: site.name,
+  publisher: orgRef(site),
   inLanguage: "en-US",
 });
 
@@ -135,11 +142,13 @@ export const breadcrumbLd = (items: { name: string; path: string }[]) => ({
 
 /** CollectionPage + ItemList for a listing page (e.g. /services, /blog). */
 export const collectionLd = ({
+  site,
   name,
   description,
   path,
   items,
 }: {
+  site: SiteInfo;
   name: string;
   description: string;
   path: string;
@@ -151,7 +160,7 @@ export const collectionLd = ({
   name,
   description,
   url: absoluteUrl(path),
-  isPartOf: WEBSITE_REF,
+  isPartOf: websiteRef(site),
   mainEntity: {
     "@type": "ItemList",
     itemListElement: items.map((it, i) => ({
@@ -170,7 +179,19 @@ export const faqLd = (faqs: FAQ[]) => ({
   mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 });
 
-export const serviceLd = (s: Service) => ({
+/** Offers derived from the CMS pricing plans ("5%" → percent-per-load, "$300" → price; "Custom" is skipped). */
+const offersFrom = (tiers: PricingTier[]): Record<string, unknown>[] =>
+  tiers.flatMap<Record<string, unknown>>((t) => {
+    const pct = /^(\d+(?:\.\d+)?)\s*%$/.exec(t.price.trim());
+    if (pct) {
+      return [{ "@type": "Offer", name: t.name, description: `${t.price} ${t.unit}`, priceSpecification: { "@type": "UnitPriceSpecification", price: pct[1], priceCurrency: "USD", unitText: `percent ${t.unit}` } }];
+    }
+    const usd = /^\$\s*([\d,]+(?:\.\d+)?)$/.exec(t.price.trim());
+    if (usd) return [{ "@type": "Offer", name: t.name, price: usd[1]!.replace(/,/g, ""), priceCurrency: "USD", description: t.unit.replace(/^per /, "Per ") }];
+    return [];
+  });
+
+export const serviceLd = (s: Service, site: SiteInfo, tiers: PricingTier[]) => ({
   "@context": "https://schema.org",
   "@type": "Service",
   "@id": absoluteUrl(`/services/${s.slug}#service`),
@@ -179,20 +200,12 @@ export const serviceLd = (s: Service) => ({
   description: s.description,
   url: absoluteUrl(`/services/${s.slug}`),
   image: absoluteUrl(s.image),
-  provider: ORG_REF,
+  provider: orgRef(site),
   areaServed: { "@type": "Country", name: "United States" },
-  offers: [
-    {
-      "@type": "Offer",
-      name: "Starter",
-      description: "5% per load dispatched",
-      priceSpecification: { "@type": "UnitPriceSpecification", price: "5", priceCurrency: "USD", unitText: "percent per load dispatched" },
-    },
-    { "@type": "Offer", name: "Professional", price: "300", priceCurrency: "USD", description: "Per truck per month" },
-  ],
+  offers: offersFrom(tiers),
 });
 
-export const articleLd = (p: Post) => ({
+export const articleLd = (p: Post, site: SiteInfo) => ({
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "@id": absoluteUrl(`/blog/${p.slug}#article`),
@@ -203,7 +216,7 @@ export const articleLd = (p: Post) => ({
   // Real "last edited" time from the CMS; only emitted when it's actually after publication.
   ...(p.updated_at && +new Date(p.updated_at) > +new Date(p.published_at) ? { dateModified: p.updated_at } : {}),
   author: { "@type": "Person", name: p.author },
-  publisher: ORG_REF,
+  publisher: orgRef(site),
   mainEntityOfPage: absoluteUrl(`/blog/${p.slug}`),
   articleSection: p.category,
   timeRequired: `PT${p.read_time}M`,

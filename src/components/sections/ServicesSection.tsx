@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { SERVICES } from "@/lib/constants";
+import type { Service } from "@/types";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
-export function ServicesSection() {
+export function ServicesSection({ services: SERVICES }: { services: Service[] }) {
   const [active, setActive] = useState(0);
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();

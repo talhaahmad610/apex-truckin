@@ -1,5 +1,6 @@
 import { Check, Minus } from "lucide-react";
-import { PRICING_COMPARISON, PRICING_FAQS } from "@/lib/constants";
+import { PRICING_COMPARISON } from "@/lib/constants";
+import { getFaqs } from "@/lib/cms";
 import { faqLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { PricingSection } from "@/components/sections/PricingSection";
@@ -9,7 +10,7 @@ import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { JsonLd } from "@/components/ui/JsonLd";
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "Truck Dispatch Pricing — 5% Per Load or $300/Truck Flat",
   description:
     "Transparent truck dispatch pricing: Starter at 5% per load, Professional at $300 per truck per month, or custom Enterprise plans. No contracts or setup fees.",
@@ -25,7 +26,8 @@ function Cell({ v }: { v: boolean | string }) {
   );
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const PRICING_FAQS = await getFaqs("pricing");
   return (
     <>
       <JsonLd data={faqLd(PRICING_FAQS)} />

@@ -1,12 +1,12 @@
-import { CARRIER_REQUIREMENTS, COMPANY, PRICING, SERVICES, STEPS } from "@/lib/constants";
-import { getPosts } from "@/lib/cms";
+import { CARRIER_REQUIREMENTS, STEPS } from "@/lib/constants";
+import { getPosts, getPricingTiers, getServices, getSiteSettings } from "@/lib/cms";
 import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 3600;
 
 /** /llms.txt — concise, citation-friendly summary for AI assistants. */
 export async function GET() {
-  const { posts } = await getPosts({ limit: 50 });
+  const [{ posts }, COMPANY, SERVICES, PRICING] = await Promise.all([getPosts({ limit: 50 }), getSiteSettings(), getServices(), getPricingTiers()]);
   const lastUpdated = new Date().toISOString().slice(0, 10);
   const body = `# ${COMPANY.name}
 

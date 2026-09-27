@@ -1,10 +1,10 @@
-import { COMPANY } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/cms";
 import { Button } from "@/components/ui/Button";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { DepthLayers } from "@/components/3d/DepthLayers";
 import { CssTruck } from "@/components/3d/CssTruck";
 
-export function CTABannerSection({
+export async function CTABannerSection({
   title = (
     <>
       Ready to keep your <span className="text-gradient">truck moving?</span>
@@ -17,6 +17,7 @@ export function CTABannerSection({
   body?: string;
   truck?: boolean;
 }) {
+  const COMPANY = await getSiteSettings();
   return (
     <RevealWrapper as="section" className="px-3 py-16 md:py-24">
       <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem] border border-line bg-[linear-gradient(135deg,#141726_0%,#0a0a0f_55%,#1d1208_100%)]">

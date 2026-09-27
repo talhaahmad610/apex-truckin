@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
-import { SERVICES } from "@/lib/constants";
+import { getServices, getSiteSettings } from "@/lib/cms";
 import { collectionLd, pageMetadata } from "@/lib/seo";
+import type { Service } from "@/types";
 import { PageHero } from "@/components/sections/PageHero";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
 import { MarqueeTicker } from "@/components/sections/MarqueeTicker";
@@ -12,27 +13,31 @@ import { Button } from "@/components/ui/Button";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { TiltCard } from "@/components/3d/TiltCard";
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "Truck Dispatch Services — Dry Van, Flatbed, Reefer & More",
   description:
     "Comprehensive truck dispatch services for dry van, flatbed, reefer, hotshot, step deck, power only and box truck carriers. Load sourcing, negotiation, paperwork and 24/7 support.",
   path: "/services",
 });
 
+// Each service's column comes from its "Comparison table" tab in the CMS.
+const CDL_LABEL = { yes: "Yes", no: "No", depends: "Depends" } as const;
 const COMPARE = [
-  { key: "Avg. rate", get: (s: (typeof SERVICES)[number]) => s.avgRate.replace(" / mile", "") },
-  { key: "CDL required", get: (s: (typeof SERVICES)[number]) => (s.slug === "box-truck" || s.slug === "hotshot" ? "Depends" : "Yes") },
-  { key: "Tarp / accessorial pay", get: (s: (typeof SERVICES)[number]) => ["flatbed", "step-deck", "hotshot", "box-truck"].includes(s.slug) },
-  { key: "Permit coordination", get: (s: (typeof SERVICES)[number]) => ["flatbed", "step-deck"].includes(s.slug) },
-  { key: "Temperature monitoring", get: (s: (typeof SERVICES)[number]) => s.slug === "reefer" },
-  { key: "Drop & hook focus", get: (s: (typeof SERVICES)[number]) => s.slug === "power-only" || s.slug === "dry-van" },
+  { key: "Avg. rate", get: (s: Service) => s.avgRate.replace(" / mile", "") },
+  { key: "CDL required", get: (s: Service) => CDL_LABEL[s.comparison.cdl] },
+  { key: "Tarp / accessorial pay", get: (s: Service) => s.comparison.tarpPay },
+  { key: "Permit coordination", get: (s: Service) => s.comparison.permits },
+  { key: "Temperature monitoring", get: (s: Service) => s.comparison.tempMonitoring },
+  { key: "Drop & hook focus", get: (s: Service) => s.comparison.dropHook },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const [SERVICES, site] = await Promise.all([getServices(), getSiteSettings()]);
   return (
     <>
       <JsonLd
         data={collectionLd({
+          site,
           name: "Truck Dispatch Services",
           description: "Dispatch services by equipment type: dry van, flatbed, reefer, hotshot, step deck, power only and box truck.",
           path: "/services",

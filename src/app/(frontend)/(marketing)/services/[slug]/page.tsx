@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
-import { SERVICES, STEPS } from "@/lib/constants";
+import { STEPS } from "@/lib/constants";
+import { getFaqs, getPricingTiers, getServiceBySlug, getServices, getSiteSettings } from "@/lib/cms";
 import { faqLd, pageMetadata, serviceLd } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { PricingSection } from "@/components/sections/PricingSection";
@@ -17,19 +18,20 @@ import { TiltCard } from "@/components/3d/TiltCard";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return SERVICES.map((s) => ({ slug: s.slug }));
+// Pre-render every service that exists at build time; services added later in the CMS render on
+// first request (and are cached) instead of 404ing.
+export async function generateStaticParams() {
+  return (await getServices()).map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const s = SERVICES.find((x) => x.slug === slug);
-  if (!s) return {};
+  const s = await getServiceBySlug(slug);
+  if (!s) return { title: "Service not found", robots: { index: false } };
   return pageMetadata({
-    title: `${s.name} Dispatch Services — ${s.tagline}`,
-    description: `${s.name} truck dispatch for owner-operators and fleets: ${s.short} Average rates ${s.avgRate}. 24/7 dispatch, no forced loads.`,
+    title: s.metaTitle || `${s.name} Dispatch Services — ${s.tagline}`,
+    description:
+      s.metaDescription || `${s.name} truck dispatch for owner-operators and fleets: ${s.short} Average rates ${s.avgRate}. 24/7 dispatch, no forced loads.`,
     path: `/services/${s.slug}`,
     image: s.image,
   });
@@ -37,19 +39,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServicePage({ params }: Props) {
   const { slug } = await params;
+  const [SERVICES, sharedFaqs, site, tiers] = await Promise.all([getServices(), getFaqs("service"), getSiteSettings(), getPricingTiers()]);
   const idx = SERVICES.findIndex((x) => x.slug === slug);
   const s = SERVICES[idx];
   if (!s) notFound();
   const others = SERVICES.filter((x) => x.slug !== s.slug).slice(0, 3);
-  const faqs = [
-    ...s.faqs,
-    { q: `How much does ${s.name.toLowerCase()} dispatch cost?`, a: "Starter is 5% per load dispatched with no monthly fee. Professional is a flat $300 per truck per month. Enterprise fleets get custom pricing." },
-    { q: "Do you force dispatch?", a: "Never. Every load is sent to you for approval before it's booked." },
-  ];
+  // Service-specific FAQs, then the shared "every service page" FAQs ({service} → this service).
+  const name = s.name.toLowerCase();
+  const faqs = [...s.faqs, ...sharedFaqs.map((f) => ({ q: f.q.replaceAll("{service}", name), a: f.a.replaceAll("{service}", name) }))];
 
   return (
     <>
-      <JsonLd data={[serviceLd(s), faqLd(faqs)]} />
+      <JsonLd data={[serviceLd(s, site, tiers), faqLd(faqs)]} />
       <PageHero
         eyebrow={`Service 0${idx + 1} / ${s.name}`}
         title={

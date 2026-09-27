@@ -1,4 +1,4 @@
-import { COMPANY, GENERAL_FAQS } from "@/lib/constants";
+import { getEquipmentTypes, getFaqs, getSiteSettings } from "@/lib/cms";
 import { faqLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { ContactMethods, MapEmbed } from "@/components/sections/ContactSection";
@@ -9,13 +9,17 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { LiveDot } from "@/components/ui/Card";
 
-export const metadata = pageMetadata({
+export const generateMetadata = async () => {
+  const COMPANY = await getSiteSettings();
+  return pageMetadata({
   title: "Contact Apex Truckin — 24/7 Truck Dispatch Support",
   description: `Talk to a truck dispatcher 24/7. Call ${COMPANY.phone}, email ${COMPANY.email} or message us on WhatsApp for a free lane review.`,
   path: "/contact",
-});
+  });
+};
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const [COMPANY, GENERAL_FAQS, equipmentTypes] = await Promise.all([getSiteSettings(), getFaqs("general"), getEquipmentTypes()]);
   return (
     <>
       <JsonLd data={faqLd(GENERAL_FAQS)} />
@@ -37,7 +41,7 @@ export default function ContactPage() {
             <div className="bezel">
               <div className="bezel-core p-6 sm:p-10">
                 <h2 className="mb-8 font-display text-4xl font-bold uppercase">Start dispatching</h2>
-                <ContactForm />
+                <ContactForm equipmentTypes={equipmentTypes} />
               </div>
             </div>
           </div>

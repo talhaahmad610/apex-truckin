@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { contactSchema, type ContactFormValues } from "@/lib/schemas";
-import { EQUIPMENT_TYPES } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +42,7 @@ function Field({
   );
 }
 
-export function ContactForm({ className }: { className?: string }) {
+export function ContactForm({ className, equipmentTypes }: { className?: string; equipmentTypes: string[] }) {
   const {
     register,
     handleSubmit,
@@ -116,7 +115,7 @@ export function ContactForm({ className }: { className?: string }) {
         <div className="relative">
           <select id="cf-equipment_type" className={cn(field, "appearance-none pr-12")} {...aria("equipment_type")} {...register("equipment_type")}>
             <option value="" className="bg-[#13151f]">Select equipment…</option>
-            {EQUIPMENT_TYPES.map((e) => (
+            {equipmentTypes.map((e) => (
               <option key={e} value={e} className="bg-[#13151f]">
                 {e}
               </option>

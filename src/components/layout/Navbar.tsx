@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { NAV_LINKS, COMPANY } from "@/lib/constants";
+import type { SiteInfo } from "@/types";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -15,7 +15,9 @@ import { Logo } from "./Logo";
 const loadMobileMenu = () => import("./MobileMenu");
 const MobileMenu = dynamic(() => loadMobileMenu().then((m) => m.MobileMenu), { ssr: false });
 
-export function Navbar() {
+export type NavSite = Pick<SiteInfo, "nav" | "phone" | "phoneHref" | "whatsapp">;
+
+export function Navbar({ site }: { site: NavSite }) {
   const { scrolled, progressRef } = useScrollProgress(40);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -50,7 +52,7 @@ export function Navbar() {
         >
           <Logo />
           <ul className="hidden items-center gap-1 lg:flex">
-            {NAV_LINKS.map((l) => {
+            {site.nav.map((l) => {
               const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
               return (
                 <li key={l.href}>
@@ -70,8 +72,8 @@ export function Navbar() {
             })}
           </ul>
           <div className="flex items-center gap-2">
-            <a href={COMPANY.phoneHref} className="hidden text-[13px] font-medium text-white/70 transition-colors hover:text-amber xl:block">
-              {COMPANY.phone}
+            <a href={site.phoneHref} className="hidden text-[13px] font-medium text-white/70 transition-colors hover:text-amber xl:block">
+              {site.phone}
             </a>
             <Button href="/contact" className="hidden sm:inline-flex">
               Get Started
@@ -118,7 +120,7 @@ export function Navbar() {
           />
         </nav>
       </header>
-      <MobileMenu open={open} onClose={() => setOpen(false)} />
+      <MobileMenu open={open} onClose={() => setOpen(false)} site={site} />
     </>
   );
 }

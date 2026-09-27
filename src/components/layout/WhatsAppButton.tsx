@@ -1,10 +1,9 @@
-import { COMPANY } from "@/lib/constants";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
 
-export function WhatsAppButton() {
+export function WhatsAppButton({ href }: { href: string }) {
   return (
     <a
-      href={COMPANY.whatsapp}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with Apex Truckin dispatch on WhatsApp"

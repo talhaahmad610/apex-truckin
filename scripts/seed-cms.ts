@@ -10,7 +10,8 @@ import path from "path";
 import { getPayload, type Payload } from "payload";
 import config from "../src/payload.config";
 import { htmlToLexical } from "../src/payload/htmlToLexical";
-import { SEED_POSTS } from "../src/lib/seed-data";
+import { SEED_POSTS, SEED_TESTIMONIALS } from "../src/lib/seed-data";
+import { COMPANY, GENERAL_FAQS, NAV_LINKS, PRICING, PRICING_FAQS, SERVICES, TEAM } from "../src/lib/constants";
 
 // A FRESH object per call: Payload hooks mutate req.context (the S3 plugin sets skipCloudStorage
 // after an upload), so a shared object would make every later upload silently skip storage.
@@ -106,8 +107,161 @@ async function seedBlog(payload: Payload) {
   log(`posts: ${SEED_POSTS.length}`);
 }
 
+/* ───────────────────────── Phase 4: site content ───────────────────────── */
+
+type Coll = "services" | "pricing-tiers" | "faqs" | "team" | "testimonials";
+async function upsertBy(payload: Payload, collection: Coll, where: Record<string, unknown>, data: Record<string, unknown>) {
+  const found = await payload.find({ collection, where: where as never, limit: 1, depth: 0 });
+  if (found.docs[0]) {
+    await payload.update({ collection, id: found.docs[0].id, data: data as never, context: ctx() });
+    return found.docs[0].id;
+  }
+  return (await payload.create({ collection, data: data as never, context: ctx() })).id;
+}
+
+const rows = (list: readonly string[]) => list.map((text) => ({ text }));
+
+async function seedSiteSettings(payload: Payload) {
+  const digits = COMPANY.phoneHref.replace(/^tel:/, "");
+  const wa = new URL(COMPANY.whatsapp);
+  await payload.updateGlobal({
+    slug: "site-settings",
+    context: ctx(),
+    data: {
+      name: COMPANY.name,
+      legalName: COMPANY.legalName,
+      founded: COMPANY.founded,
+      tagline: COMPANY.tagline,
+      subTagline: COMPANY.subTagline,
+      phone: COMPANY.phone,
+      phoneE164: digits,
+      email: COMPANY.email,
+      whatsappNumber: wa.pathname.replace(/\D/g, ""),
+      whatsappMessage: wa.searchParams.get("text") ?? "",
+      address: { ...COMPANY.address },
+      hours: COMPANY.hours.map((h) => ({ ...h })),
+      socials: { ...COMPANY.socials },
+      nav: NAV_LINKS.map((n) => ({ ...n })),
+      footerHeadline: "Keep it",
+      footerHighlight: "moving.",
+      newsletterLabel: "Weekly lane & rate intel",
+      footerBottomLine: "Truck dispatch services · Dallas, TX · Serving all 48 contiguous states",
+      legalLinks: [
+        { label: "Privacy Policy", href: "/privacy" },
+        { label: "Terms of Service", href: "/terms" },
+        { label: "Sitemap", href: "/sitemap.xml" },
+      ],
+    },
+  });
+  log("site settings");
+}
+
+// The services comparison table used to be computed from slugs in code; it is now per-service data.
+const comparisonFor = (slug: string) => ({
+  cdl: slug === "box-truck" || slug === "hotshot" ? ("depends" as const) : ("yes" as const),
+  tarpPay: ["flatbed", "step-deck", "hotshot", "box-truck"].includes(slug),
+  permits: ["flatbed", "step-deck"].includes(slug),
+  tempMonitoring: slug === "reefer",
+  dropHook: slug === "power-only" || slug === "dry-van",
+});
+
+async function seedServices(payload: Payload) {
+  for (const [order, s] of SERVICES.entries()) {
+    const image = await ensureMedia(payload, s.image, s.imageAlt);
+    await upsertBy(payload, "services", { slug: { equals: s.slug } }, {
+      name: s.name,
+      slug: s.slug,
+      order,
+      short: s.short,
+      tagline: s.tagline,
+      description: s.description,
+      image,
+      avgRate: s.avgRate,
+      included: rows(s.included),
+      requirements: rows(s.requirements),
+      benefits: s.benefits.map((b) => ({ ...b })),
+      typicalLoads: rows(s.typicalLoads),
+      faqs: s.faqs.map((f) => ({ ...f })),
+      comparison: comparisonFor(s.slug),
+    });
+  }
+  log(`services: ${SERVICES.length}`);
+}
+
+async function seedPricing(payload: Payload) {
+  for (const [order, t] of PRICING.entries()) {
+    await upsertBy(payload, "pricing-tiers", { name: { equals: t.name } }, {
+      name: t.name,
+      price: t.price,
+      unit: t.unit,
+      blurb: t.blurb,
+      features: rows(t.features),
+      cta: t.cta,
+      featured: Boolean(t.featured),
+      order,
+    });
+  }
+  log(`pricing plans: ${PRICING.length}`);
+}
+
+async function seedFaqs(payload: Payload) {
+  const groups: [string, { q: string; a: string }[]][] = [
+    ["general", GENERAL_FAQS],
+    ["pricing", PRICING_FAQS],
+    [
+      "service",
+      [
+        {
+          q: "How much does {service} dispatch cost?",
+          a: "Starter is 5% per load dispatched with no monthly fee. Professional is a flat $300 per truck per month. Enterprise fleets get custom pricing.",
+        },
+        { q: "Do you force dispatch?", a: "Never. Every load is sent to you for approval before it's booked." },
+      ],
+    ],
+  ];
+  let n = 0;
+  for (const [group, list] of groups) {
+    for (const [order, f] of list.entries()) {
+      await upsertBy(payload, "faqs", { and: [{ question: { equals: f.q } }, { group: { equals: group } }] }, { question: f.q, answer: f.a, group, order });
+      n++;
+    }
+  }
+  log(`faqs: ${n}`);
+}
+
+async function seedTeam(payload: Payload) {
+  for (const [order, m] of TEAM.entries()) {
+    const photo = await ensureMedia(payload, m.image, `Portrait of ${m.name}, ${m.role}`);
+    await upsertBy(payload, "team", { name: { equals: m.name } }, { name: m.name, role: m.role, photo, bio: m.bio, order });
+  }
+  log(`team: ${TEAM.length}`);
+}
+
+async function seedTestimonials(payload: Payload) {
+  // Preserve today's display order: featured first, then newest first.
+  const sorted = [...SEED_TESTIMONIALS].sort((a, b) => Number(b.is_featured) - Number(a.is_featured) || +new Date(b.created_at) - +new Date(a.created_at));
+  for (const [order, t] of sorted.entries()) {
+    await upsertBy(payload, "testimonials", { carrierName: { equals: t.carrier_name } }, {
+      carrierName: t.carrier_name,
+      reviewText: t.review_text,
+      rating: t.rating,
+      truckType: t.truck_type,
+      location: t.location,
+      featured: t.is_featured,
+      order,
+    });
+  }
+  log(`testimonials: ${sorted.length}`);
+}
+
 const payload = await getPayload({ config });
 await ensureAdmin(payload);
 await seedBlog(payload);
-log("done");
+await seedSiteSettings(payload);
+await seedServices(payload);
+await seedPricing(payload);
+await seedFaqs(payload);
+await seedTeam(payload);
+await seedTestimonials(payload);
+log("done — the seed skips cache revalidation, so restart a running dev server (or save Site settings in /admin) to see the changes");
 process.exit(0);

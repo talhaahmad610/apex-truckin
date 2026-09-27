@@ -1,5 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
-import { CARRIER_BENEFITS, CARRIER_REQUIREMENTS, GENERAL_FAQS, STEPS } from "@/lib/constants";
+import { CARRIER_BENEFITS, CARRIER_REQUIREMENTS, STEPS } from "@/lib/constants";
+import { getFaqs } from "@/lib/cms";
 import { faqLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
@@ -13,14 +14,15 @@ import { TiltCard } from "@/components/3d/TiltCard";
 import { CssTruck } from "@/components/3d/CssTruck";
 import { DepthLayers } from "@/components/3d/DepthLayers";
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "For Carriers — Dispatch for Owner-Operators & Small Fleets",
   description:
     "Owner-operators and fleets: get higher-paying loads, less deadhead and 24/7 dispatch support. No forced dispatch, no contracts. See requirements and join Apex Truckin.",
   path: "/carriers",
 });
 
-export default function CarriersPage() {
+export default async function CarriersPage() {
+  const GENERAL_FAQS = await getFaqs("general");
   return (
     <>
       <JsonLd data={faqLd(GENERAL_FAQS)} />

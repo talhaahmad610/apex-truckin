@@ -1,4 +1,4 @@
-import { getCategories, getPosts } from "@/lib/cms";
+import { getCategories, getPosts, getSiteSettings } from "@/lib/cms";
 import { collectionLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { BlogExplorer } from "@/components/sections/BlogExplorer";
@@ -10,7 +10,7 @@ import { JsonLd } from "@/components/ui/JsonLd";
 
 export const revalidate = 300;
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "Truck Dispatch Blog — Rates, Lanes & Owner-Operator Tips",
   description:
     "Practical truck dispatch insights: how to find better-paying loads, negotiate with brokers, cut deadhead, and grow your owner-operator business.",
@@ -18,13 +18,14 @@ export const metadata = pageMetadata({
 });
 
 export default async function BlogPage() {
-  const [{ posts }, categories] = await Promise.all([getPosts({ limit: 100 }), getCategories()]);
+  const [{ posts }, categories, site] = await Promise.all([getPosts({ limit: 100 }), getCategories(), getSiteSettings()]);
   const [featured, ...rest] = posts;
 
   return (
     <>
       <JsonLd
         data={collectionLd({
+          site,
           name: "Truck Dispatch Blog",
           description: "Rate trends, lane strategy, broker negotiation and regulations for owner-operators and fleets.",
           path: "/blog",

@@ -2,11 +2,13 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { DepthLayers } from "@/components/3d/DepthLayers";
+import { getSiteSettings } from "@/lib/cms";
 
-export function NotFoundView() {
+export async function NotFoundView() {
+  const site = await getSiteSettings();
   return (
     <>
-      <Navbar />
+      <Navbar site={{ nav: site.nav, phone: site.phone, phoneHref: site.phoneHref, whatsapp: site.whatsapp }} />
       <main id="main" className="relative flex min-h-[100dvh] items-center overflow-hidden">
         <DepthLayers />
         <div className="relative mx-auto max-w-[1320px] px-4 sm:px-8">

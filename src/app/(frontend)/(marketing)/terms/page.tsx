@@ -1,14 +1,15 @@
-import { COMPANY } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/cms";
 import { pageMetadata } from "@/lib/seo";
 import { LegalPage } from "@/components/sections/LegalPage";
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "Terms of Service",
   description: "The terms that govern use of the Apex Truckin website and truck dispatch services.",
   path: "/terms",
 });
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const COMPANY = await getSiteSettings();
   return (
     <LegalPage title="Terms of Service" path="/terms" updated="September 1, 2025">
       <p>

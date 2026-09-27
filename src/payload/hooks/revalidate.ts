@@ -7,11 +7,16 @@ import type { PayloadRequest } from "payload";
  * Silently no-ops outside a Next.js request (e.g. `payload run` seed scripts) or when
  * `req.context.disableRevalidate` is set for bulk operations.
  */
-export function revalidate(req: PayloadRequest | undefined, { tags = [], paths = [] }: { tags?: string[]; paths?: string[] }) {
+export function revalidate(
+  req: PayloadRequest | undefined,
+  { tags = [], paths = [], everything = false }: { tags?: string[]; paths?: string[]; everything?: boolean },
+) {
   if (req?.context?.disableRevalidate) return;
   try {
     for (const t of new Set(tags)) revalidateTag(t, { expire: 0 });
     for (const p of new Set(paths)) revalidatePath(p);
+    // Site-wide content (header/footer/company details) appears on every page.
+    if (everything) revalidatePath("/", "layout");
   } catch {
     // Not inside a Next.js server context — nothing is cached to purge.
   }

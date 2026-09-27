@@ -4,7 +4,7 @@ import Link from "next/link";
 import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, Clock3, UserRound } from "lucide-react";
-import { getPostBySlug, getPosts, getRelatedPosts } from "@/lib/cms";
+import { getPostBySlug, getPosts, getRelatedPosts, getSiteSettings } from "@/lib/cms";
 import { articleLd, breadcrumbLd, pageMetadata } from "@/lib/seo";
 import { absoluteUrl, buildToc, formatDate } from "@/lib/utils";
 import { BlogCard } from "@/components/ui/BlogCard";
@@ -47,14 +47,14 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
   // HTML is generated server-side from the CMS rich-text JSON (text escaped, URLs sanitized).
   const { html, toc } = buildToc(post.content ?? "");
-  const related = await getRelatedPosts(post, 3);
+  const [related, site] = await Promise.all([getRelatedPosts(post, 3), getSiteSettings()]);
   const url = absoluteUrl(`/blog/${post.slug}`);
 
   return (
     <>
       <JsonLd
         data={[
-          articleLd(post),
+          articleLd(post, site),
           breadcrumbLd([
             { name: "Blog", path: "/blog" },
             { name: post.title, path: `/blog/${post.slug}` },

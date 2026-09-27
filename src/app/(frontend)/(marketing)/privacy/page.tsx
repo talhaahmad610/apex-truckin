@@ -1,14 +1,15 @@
-import { COMPANY } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/cms";
 import { pageMetadata } from "@/lib/seo";
 import { LegalPage } from "@/components/sections/LegalPage";
 
-export const metadata = pageMetadata({
+export const generateMetadata = () => pageMetadata({
   title: "Privacy Policy",
   description: "How Apex Truckin collects, uses and protects personal information from carriers, brokers and website visitors.",
   path: "/privacy",
 });
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const COMPANY = await getSiteSettings();
   return (
     <LegalPage title="Privacy Policy" path="/privacy" updated="September 1, 2025">
       <p>

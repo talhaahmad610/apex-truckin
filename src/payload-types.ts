@@ -69,6 +69,11 @@ export interface Config {
   collections: {
     leads: Lead;
     subscribers: Subscriber;
+    services: Service;
+    'pricing-tiers': PricingTier;
+    testimonials: Testimonial;
+    faqs: Faq;
+    team: Team;
     posts: Post;
     categories: Category;
     media: Media;
@@ -83,6 +88,11 @@ export interface Config {
   collectionsSelect: {
     leads: LeadsSelect<false> | LeadsSelect<true>;
     subscribers: SubscribersSelect<false> | SubscribersSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
+    'pricing-tiers': PricingTiersSelect<false> | PricingTiersSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
+    team: TeamSelect<false> | TeamSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -98,9 +108,11 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    'site-settings': SiteSetting;
     notifications: Notification;
   };
   globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
   };
   locale: null;
@@ -220,6 +232,242 @@ export interface Subscriber {
   createdAt: string;
 }
 /**
+ * Equipment types you dispatch. Each gets its own page at /services/<slug>, a tab on the home page, a footer link, and a column in the comparison table.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services".
+ */
+export interface Service {
+  id: number;
+  /**
+   * e.g. Dry Van. The word Dispatch is added automatically where needed.
+   */
+  name: string;
+  /**
+   * One line for cards and lists.
+   */
+  short: string;
+  tagline: string;
+  description: string;
+  image: number | Media;
+  /**
+   * e.g. $2.40 – $3.10 / mile
+   */
+  avgRate: string;
+  included?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  requirements?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  benefits?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  typicalLoads?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  faqs?:
+    | {
+        q: string;
+        a: string;
+        id?: string | null;
+      }[]
+    | null;
+  comparison?: {
+    cdl?: ('yes' | 'no' | 'depends') | null;
+    tarpPay?: boolean | null;
+    permits?: boolean | null;
+    tempMonitoring?: boolean | null;
+    dropHook?: boolean | null;
+  };
+  /**
+   * Defaults to the page's standard title.
+   */
+  metaTitle?: string | null;
+  /**
+   * Defaults to the description.
+   */
+  metaDescription?: string | null;
+  /**
+   * The URL part, e.g. dry-van-vs-flatbed. Leave empty to generate it from the title.
+   */
+  slug: string;
+  /**
+   * Lower numbers show first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Describe the image for screen readers and SEO. Required.
+   */
+  alt: string;
+  prefix?: string | null;
+  _objectKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    hero?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pricing-tiers".
+ */
+export interface PricingTier {
+  id: number;
+  name: string;
+  /**
+   * e.g. 5%, $300, Custom
+   */
+  price: string;
+  /**
+   * e.g. per truck / month
+   */
+  unit: string;
+  blurb: string;
+  features?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  cta: string;
+  /**
+   * Highlights the plan (Most popular).
+   */
+  featured?: boolean | null;
+  /**
+   * Lower numbers show first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: number;
+  carrierName: string;
+  reviewText: string;
+  rating: number;
+  truckType?: string | null;
+  location?: string | null;
+  /**
+   * Featured reviews show first.
+   */
+  featured?: boolean | null;
+  /**
+   * Lower numbers show first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Shared FAQs. Service-specific FAQs live on each service instead.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  /**
+   * In the service-page group, {service} is replaced with the service name (e.g. dry van).
+   */
+  question: string;
+  /**
+   * Plain text. It is also published to Google as FAQ structured data.
+   */
+  answer: string;
+  group: 'general' | 'pricing' | 'service';
+  /**
+   * Lower numbers show first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team".
+ */
+export interface Team {
+  id: number;
+  name: string;
+  role: string;
+  photo: number | Media;
+  bio: string;
+  /**
+   * Lower numbers show first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
@@ -289,64 +537,6 @@ export interface Category {
   order?: number | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  /**
-   * Describe the image for screen readers and SEO. Required.
-   */
-  alt: string;
-  prefix?: string | null;
-  _objectKey?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-  sizes?: {
-    thumbnail?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    card?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    hero?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    og?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -473,6 +663,26 @@ export interface PayloadLockedDocument {
         value: number | Subscriber;
       } | null)
     | ({
+        relationTo: 'services';
+        value: number | Service;
+      } | null)
+    | ({
+        relationTo: 'pricing-tiers';
+        value: number | PricingTier;
+      } | null)
+    | ({
+        relationTo: 'testimonials';
+        value: number | Testimonial;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'team';
+        value: number | Team;
+      } | null)
+    | ({
         relationTo: 'posts';
         value: number | Post;
       } | null)
@@ -568,6 +778,126 @@ export interface SubscribersSelect<T extends boolean = true> {
   email?: T;
   status?: T;
   source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services_select".
+ */
+export interface ServicesSelect<T extends boolean = true> {
+  name?: T;
+  short?: T;
+  tagline?: T;
+  description?: T;
+  image?: T;
+  avgRate?: T;
+  included?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  requirements?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  benefits?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  typicalLoads?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  faqs?:
+    | T
+    | {
+        q?: T;
+        a?: T;
+        id?: T;
+      };
+  comparison?:
+    | T
+    | {
+        cdl?: T;
+        tarpPay?: T;
+        permits?: T;
+        tempMonitoring?: T;
+        dropHook?: T;
+      };
+  metaTitle?: T;
+  metaDescription?: T;
+  slug?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pricing-tiers_select".
+ */
+export interface PricingTiersSelect<T extends boolean = true> {
+  name?: T;
+  price?: T;
+  unit?: T;
+  blurb?: T;
+  features?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  cta?: T;
+  featured?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  carrierName?: T;
+  reviewText?: T;
+  rating?: T;
+  truckType?: T;
+  location?: T;
+  featured?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  group?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team_select".
+ */
+export interface TeamSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  photo?: T;
+  bio?: T;
+  order?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -766,6 +1096,87 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Company details, navigation and footer — used on every page and in Google structured data.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  name: string;
+  legalName: string;
+  founded?: number | null;
+  tagline: string;
+  subTagline: string;
+  phone: string;
+  /**
+   * Digits with country code, e.g. +18880000000. Used for tap-to-call links.
+   */
+  phoneE164: string;
+  email: string;
+  /**
+   * Digits only, with country code.
+   */
+  whatsappNumber: string;
+  /**
+   * Pre-filled message when a visitor taps WhatsApp.
+   */
+  whatsappMessage?: string | null;
+  address: {
+    street: string;
+    city: string;
+    region: string;
+    postal: string;
+    country: string;
+  };
+  hours?:
+    | {
+        days: string;
+        time: string;
+        id?: string | null;
+      }[]
+    | null;
+  socials?: {
+    facebook?: string | null;
+    instagram?: string | null;
+    linkedin?: string | null;
+    x?: string | null;
+  };
+  /**
+   * Top navigation and mobile menu (also the footer Company column).
+   */
+  nav?:
+    | {
+        label: string;
+        /**
+         * A page path like /pricing
+         */
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  footerHeadline: string;
+  /**
+   * Shown after the headline in the orange gradient.
+   */
+  footerHighlight?: string | null;
+  /**
+   * Shown faintly behind the footer. Leave empty for the default sunset photo.
+   */
+  footerImage?: (number | null) | Media;
+  newsletterLabel?: string | null;
+  footerBottomLine?: string | null;
+  legalLinks?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Who gets emailed about new leads, and the automatic reply carriers receive.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -792,6 +1203,68 @@ export interface Notification {
   };
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  name?: T;
+  legalName?: T;
+  founded?: T;
+  tagline?: T;
+  subTagline?: T;
+  phone?: T;
+  phoneE164?: T;
+  email?: T;
+  whatsappNumber?: T;
+  whatsappMessage?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        region?: T;
+        postal?: T;
+        country?: T;
+      };
+  hours?:
+    | T
+    | {
+        days?: T;
+        time?: T;
+        id?: T;
+      };
+  socials?:
+    | T
+    | {
+        facebook?: T;
+        instagram?: T;
+        linkedin?: T;
+        x?: T;
+      };
+  nav?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  footerHeadline?: T;
+  footerHighlight?: T;
+  footerImage?: T;
+  newsletterLabel?: T;
+  footerBottomLine?: T;
+  legalLinks?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

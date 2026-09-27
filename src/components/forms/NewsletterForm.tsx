@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { newsletterSchema, type NewsletterFormValues } from "@/lib/schemas";
 
-export function NewsletterForm() {
+export function NewsletterForm({ label }: { label: string }) {
   const {
     register,
     handleSubmit,
@@ -33,7 +33,7 @@ export function NewsletterForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full max-w-md">
       <label htmlFor="newsletter-email" className="mb-3 block text-[11px] font-medium uppercase tracking-[0.22em] text-amber">
-        Weekly lane & rate intel
+        {label}
       </label>
       <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] p-1.5 focus-within:border-amber/50">
         <input

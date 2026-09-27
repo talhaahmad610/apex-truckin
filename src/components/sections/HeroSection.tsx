@@ -4,7 +4,7 @@ import { CssTruck } from "@/components/3d/CssTruck";
 import { DepthLayers } from "@/components/3d/DepthLayers";
 import { Button } from "@/components/ui/Button";
 import { LiveDot } from "@/components/ui/Card";
-import { COMPANY } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/cms";
 import manifest from "@/lib/flight-manifest.json";
 
 const legs = manifest.legs as FlightLeg[];
@@ -33,7 +33,7 @@ function Chip({ icon, children }: { icon: React.ReactNode; children: React.React
   );
 }
 
-const beats = [
+const buildBeats = (subTagline: string) => [
   {
     id: "hero",
     label: "Apex",
@@ -51,7 +51,7 @@ const beats = [
           </span>
         </h1>
         <p className={`${riseCls} mt-6 max-w-xl text-base leading-relaxed text-white/75 md:text-lg`} style={rise(3)}>
-          {COMPANY.subTagline} Higher-paying freight, fewer empty miles, and a dispatcher who picks up at 2 AM.
+          {subTagline} Higher-paying freight, fewer empty miles, and a dispatcher who picks up at 2 AM.
         </p>
         <div className={`${riseCls} mt-9 flex flex-wrap gap-3`} style={rise(4)}>
           <Button href="/contact" size="lg">Start Dispatching</Button>
@@ -147,6 +147,7 @@ function FallbackStage() {
   );
 }
 
-export function HeroSection() {
-  return <FlightScrub legs={legs} beats={beats} fallback={legs.length ? undefined : <FallbackStage />} />;
+export async function HeroSection() {
+  const site = await getSiteSettings();
+  return <FlightScrub legs={legs} beats={buildBeats(site.subTagline)} fallback={legs.length ? undefined : <FallbackStage />} />;
 }

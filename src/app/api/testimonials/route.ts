@@ -1,4 +1,4 @@
-import { getTestimonials } from "@/lib/api";
+import { getTestimonials } from "@/lib/cms";
 import { json } from "@/lib/http";
 
 export const revalidate = 300;

@@ -107,7 +107,8 @@ export const COVERAGE_STATS = [
   { value: "< 4 hr", label: "Avg. time to book" },
 ];
 
-export const SERVICES: Service[] = [
+/** Seed source for the CMS "services" collection (see scripts/seed-cms.ts). */
+export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescription">[] = [
   {
     slug: "dry-van",
     name: "Dry Van",

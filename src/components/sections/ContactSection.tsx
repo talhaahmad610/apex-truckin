@@ -1,12 +1,13 @@
 import { Clock3, Mail, MapPin, Phone } from "lucide-react";
-import { COMPANY } from "@/lib/constants";
+import { getEquipmentTypes, getSiteSettings } from "@/lib/cms";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
 import { LiveDot } from "@/components/ui/Card";
 
-export function ContactMethods() {
+export async function ContactMethods() {
+  const COMPANY = await getSiteSettings();
   const methods = [
     { icon: <Phone className="h-5 w-5" strokeWidth={1.25} />, label: "Call dispatch", value: COMPANY.phone, href: COMPANY.phoneHref },
     { icon: <Mail className="h-5 w-5" strokeWidth={1.25} />, label: "Email", value: COMPANY.email, href: `mailto:${COMPANY.email}` },
@@ -33,7 +34,8 @@ export function ContactMethods() {
   );
 }
 
-export function MapEmbed() {
+export async function MapEmbed() {
+  const COMPANY = await getSiteSettings();
   const q = encodeURIComponent(`${COMPANY.address.street}, ${COMPANY.address.city}, ${COMPANY.address.region} ${COMPANY.address.postal}`);
   return (
     <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#0d0e14]">
@@ -51,7 +53,8 @@ export function MapEmbed() {
   );
 }
 
-export function ContactSection() {
+export async function ContactSection() {
+  const equipmentTypes = await getEquipmentTypes();
   return (
     <RevealWrapper as="section" id="contact" className="relative py-24 md:py-40">
       <div className="mx-auto grid max-w-[1320px] gap-12 px-4 sm:px-8 lg:grid-cols-12">
@@ -78,7 +81,7 @@ export function ContactSection() {
         <div data-reveal="up" className="lg:col-span-7">
           <div className="bezel">
             <div className="bezel-core relative p-6 sm:p-10">
-              <ContactForm />
+              <ContactForm equipmentTypes={equipmentTypes} />
             </div>
           </div>
         </div>

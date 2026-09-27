@@ -1,24 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
-import { COMPANY, NAV_LINKS, SERVICES } from "@/lib/constants";
+import { getServices, getSiteSettings } from "@/lib/cms";
 import { FacebookIcon, InstagramIcon, LinkedinIcon, WhatsAppIcon, XIcon } from "@/components/ui/BrandIcons";
 import { NewsletterForm } from "@/components/forms/NewsletterForm";
 import { Logo } from "./Logo";
 
-const socials = [
-  { label: "Facebook", href: COMPANY.socials.facebook, Icon: FacebookIcon },
-  { label: "Instagram", href: COMPANY.socials.instagram, Icon: InstagramIcon },
-  { label: "LinkedIn", href: COMPANY.socials.linkedin, Icon: LinkedinIcon },
-  { label: "X (Twitter)", href: COMPANY.socials.x, Icon: XIcon },
-  { label: "WhatsApp", href: COMPANY.whatsapp, Icon: WhatsAppIcon },
-];
-
-export function Footer() {
+export async function Footer() {
+  const [COMPANY, SERVICES] = await Promise.all([getSiteSettings(), getServices()]);
+  const socials = [
+    { label: "Facebook", href: COMPANY.socials.facebook, Icon: FacebookIcon },
+    { label: "Instagram", href: COMPANY.socials.instagram, Icon: InstagramIcon },
+    { label: "LinkedIn", href: COMPANY.socials.linkedin, Icon: LinkedinIcon },
+    { label: "X (Twitter)", href: COMPANY.socials.x, Icon: XIcon },
+    { label: "WhatsApp", href: COMPANY.whatsapp, Icon: WhatsAppIcon },
+  ].filter((s) => s.href);
   const year = new Date().getFullYear();
   return (
     <footer className="relative isolate overflow-hidden border-t border-white/5">
       <Image
-        src="/images/footer-sunset.webp"
+        src={COMPANY.footer.image ?? "/images/footer-sunset.webp"}
         alt=""
         fill
         sizes="100vw"
@@ -30,11 +30,11 @@ export function Footer() {
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-display text-[clamp(3rem,10vw,9rem)] font-bold uppercase leading-[0.85] tracking-tight">
-              Keep it <span className="text-gradient">moving.</span>
+              {COMPANY.footer.headline}{COMPANY.footer.highlight ? <> <span className="text-gradient">{COMPANY.footer.highlight}</span></> : null}
             </p>
             <p className="mt-4 max-w-md text-muted">{COMPANY.tagline} {COMPANY.subTagline}</p>
           </div>
-          <NewsletterForm />
+          <NewsletterForm label={COMPANY.footer.newsletterLabel} />
         </div>
 
         <div className="mt-20 grid grid-cols-2 gap-10 border-t border-white/10 pt-12 md:grid-cols-12">
@@ -69,7 +69,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <FooterCol title="Company" className="md:col-span-2" links={NAV_LINKS} />
+          <FooterCol title="Company" className="md:col-span-2" links={COMPANY.nav} />
           <FooterCol
             title="Services"
             className="md:col-span-3"
@@ -78,17 +78,13 @@ export function Footer() {
           <FooterCol
             title="Legal"
             className="md:col-span-3"
-            links={[
-              { label: "Privacy Policy", href: "/privacy" },
-              { label: "Terms of Service", href: "/terms" },
-              { label: "Sitemap", href: "/sitemap.xml" },
-            ]}
+            links={COMPANY.footer.legalLinks}
           />
         </div>
 
         <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:justify-between">
           <p>© {year} {COMPANY.legalName}. All rights reserved.</p>
-          <p>Truck dispatch services · Dallas, TX · Serving all 48 contiguous states</p>
+          {COMPANY.footer.bottomLine && <p>{COMPANY.footer.bottomLine}</p>}
         </div>
       </div>
     </footer>

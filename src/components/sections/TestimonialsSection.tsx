@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getTestimonials } from "@/lib/api";
+import { getTestimonials } from "@/lib/cms";
 import { TestimonialCard, TestimonialSkeleton } from "@/components/ui/TestimonialCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { TestimonialsCarousel } from "./TestimonialsCarousel";

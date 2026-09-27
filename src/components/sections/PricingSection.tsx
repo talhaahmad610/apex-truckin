@@ -1,9 +1,10 @@
-import { PRICING } from "@/lib/constants";
+import { getPricingTiers } from "@/lib/cms";
 import { PricingCard } from "@/components/ui/PricingCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
-export function PricingSection({ withHeading = true }: { withHeading?: boolean }) {
+export async function PricingSection({ withHeading = true }: { withHeading?: boolean }) {
+  const PRICING = await getPricingTiers();
   // overflow-x-clip: the 60rem glow would widen the page on phones and break the hero's sticky stage on touch scroll
   return (
     <RevealWrapper as="section" id="pricing" className="relative overflow-x-clip py-24 md:py-40">
