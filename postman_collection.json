@@ -1,17 +1,33 @@
 {
   "info": {
     "name": "Apex Truckin API",
-    "description": "Blog CMS + forms API for Apex Truckin. Set `baseUrl` (default http://localhost:3000) and `apiKey` (= BLOG_API_KEY) in the collection variables.\n\nWrite endpoints require the `x-api-key` header.",
+    "description": "Apex Truckin APIs. Site routes live under /api/*; the Payload CMS REST API lives under /cms-api/*.\n\nAuth for writes: either the legacy `x-api-key` header ({{apiKey}} = BLOG_API_KEY) or a Payload user API key (`Authorization: users API-Key {{userApiKey}}`, enabled per user in /admin → Users → Enable API Key). The CMS folder can also log in and use a JWT.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000"
+      "value": "http://localhost:3200"
     },
     {
       "key": "apiKey",
-      "value": "your_secret_key_for_cms_api"
+      "value": "your_BLOG_API_KEY"
+    },
+    {
+      "key": "userApiKey",
+      "value": "your_payload_user_api_key"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@apextruckin.com"
+    },
+    {
+      "key": "adminPassword",
+      "value": "your_admin_password"
+    },
+    {
+      "key": "jwt",
+      "value": ""
     },
     {
       "key": "slug",
@@ -193,6 +209,11 @@
               {
                 "key": "x-api-key",
                 "value": "{{apiKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "users API-Key {{userApiKey}}",
+                "disabled": true
               }
             ],
             "body": {
@@ -213,7 +234,8 @@
                 "api",
                 "posts"
               ]
-            }
+            },
+            "description": "Auth: x-api-key (legacy) — or disable that header and enable the Authorization header to use a Payload user API key."
           },
           "event": [
             {
@@ -283,6 +305,11 @@
               {
                 "key": "x-api-key",
                 "value": "{{apiKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "users API-Key {{userApiKey}}",
+                "disabled": true
               }
             ],
             "body": {
@@ -303,7 +330,8 @@
                 "api",
                 "posts"
               ]
-            }
+            },
+            "description": "Auth: x-api-key (legacy) — or disable that header and enable the Authorization header to use a Payload user API key."
           },
           "event": [
             {
@@ -330,6 +358,11 @@
               {
                 "key": "x-api-key",
                 "value": "{{apiKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "users API-Key {{userApiKey}}",
+                "disabled": true
               }
             ],
             "body": {
@@ -351,7 +384,8 @@
                 "posts",
                 "hours-of-service-rules"
               ]
-            }
+            },
+            "description": "Auth: x-api-key (legacy) — or disable that header and enable the Authorization header to use a Payload user API key."
           },
           "event": [
             {
@@ -374,6 +408,11 @@
               {
                 "key": "x-api-key",
                 "value": "{{apiKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "users API-Key {{userApiKey}}",
+                "disabled": true
               }
             ],
             "url": {
@@ -386,7 +425,8 @@
                 "posts",
                 "hours-of-service-rules"
               ]
-            }
+            },
+            "description": "Auth: x-api-key (legacy) — or disable that header and enable the Authorization header to use a Payload user API key."
           },
           "event": [
             {
@@ -567,6 +607,345 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "CMS (Payload REST)",
+      "description": "Payload CMS REST API. Collections: posts, categories, media, leads, subscribers, users. Leads/subscribers/users are admin-only (403 without auth). Anonymous readers only see published posts.",
+      "item": [
+        {
+          "name": "Login (saves JWT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/users/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "users",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.token) pm.collectionVariables.set(\"jwt\", j.token);",
+                  "pm.test(\"logged in\", () => pm.expect(j.token).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "JWT {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Published posts (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/posts?where[_status][equals]=published&limit=10&depth=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "where[_status][equals]",
+                  "value": "published"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "depth",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "All posts incl. drafts (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "JWT {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/posts?draft=true&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "draft",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Post by slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/posts?where[slug][equals]={{slug}}&depth=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "where[slug][equals]",
+                  "value": "{{slug}}"
+                },
+                {
+                  "key": "depth",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/categories?sort=order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "order"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Leads (admin, user API key)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "users API-Key {{userApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/leads?sort=-createdAt&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "leads"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "-createdAt"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Leads — unauthorized (expect 403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/leads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "leads"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update lead status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "JWT {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/leads/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "leads",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"contacted\",\n  \"followUpAt\": \"2026-10-01T00:00:00.000Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Newsletter subscribers (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "JWT {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/subscribers?limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "subscribers"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "JWT {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cms-api/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cms-api",
+                "media"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "_payload",
+                  "value": "{\"alt\":\"Describe the image\"}",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "Pick a PNG/JPEG/WebP/AVIF file. Stored in MinIO under media/, served publicly."
+          }
         }
       ]
     }

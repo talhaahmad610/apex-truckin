@@ -24,6 +24,8 @@ export function slugify(input: string): string {
 }
 
 export function absoluteUrl(path = "/"): string {
+  // CMS media URLs are already absolute (served from the storage origin) — pass them through.
+  if (/^https?:\/\//i.test(path)) return path;
   const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://apextruckin.com").replace(/\/$/, "");
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
@@ -42,12 +44,4 @@ export function buildToc(html: string): { html: string; toc: { id: string; text:
     return `<h${lvl} id="${id}">${inner}</h${lvl}>`;
   });
   return { html: out, toc };
-}
-
-/** Very small allowlist sanitizer for CMS HTML (server-side). Strips scripts, event handlers and js: urls. */
-export function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<\s*(script|style|iframe|object|embed|form|link|meta)[\s\S]*?(<\/\s*\1\s*>|\/?>)/gi, "")
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"');
 }

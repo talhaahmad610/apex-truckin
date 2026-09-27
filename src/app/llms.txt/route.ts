@@ -1,5 +1,5 @@
 import { CARRIER_REQUIREMENTS, COMPANY, PRICING, SERVICES, STEPS } from "@/lib/constants";
-import { getPosts } from "@/lib/api";
+import { getPosts } from "@/lib/cms";
 import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 3600;

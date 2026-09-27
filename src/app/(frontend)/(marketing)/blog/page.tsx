@@ -1,4 +1,4 @@
-import { getPosts } from "@/lib/api";
+import { getCategories, getPosts } from "@/lib/cms";
 import { collectionLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { BlogExplorer } from "@/components/sections/BlogExplorer";
@@ -18,7 +18,7 @@ export const metadata = pageMetadata({
 });
 
 export default async function BlogPage() {
-  const { posts } = await getPosts({ limit: 100 });
+  const [{ posts }, categories] = await Promise.all([getPosts({ limit: 100 }), getCategories()]);
   const [featured, ...rest] = posts;
 
   return (
@@ -58,7 +58,7 @@ export default async function BlogPage() {
       <section className="pb-24 md:pb-36" aria-label="All articles">
         <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
           <h2 className="mb-8 font-display text-4xl font-bold uppercase md:text-5xl">All articles</h2>
-          <BlogExplorer posts={rest.length ? rest : posts} />
+          <BlogExplorer posts={rest.length ? rest : posts} categories={categories} />
         </div>
       </section>
 

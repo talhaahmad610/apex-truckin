@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getFeaturedPosts } from "@/lib/api";
+import { getFeaturedPosts } from "@/lib/cms";
 import { BlogCard, BlogCardSkeleton } from "@/components/ui/BlogCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { StaggerReveal } from "@/components/ui/StaggerReveal";

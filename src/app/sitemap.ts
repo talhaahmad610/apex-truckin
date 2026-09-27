@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getPosts } from "@/lib/api";
+import { getPosts } from "@/lib/cms";
 import { SERVICES } from "@/lib/constants";
 import { SITE_URL } from "@/lib/seo";
 
@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...posts.map((p) => ({
       url: `${SITE_URL}/blog/${p.slug}`,
-      lastModified: new Date(p.published_at),
+      lastModified: new Date(p.updated_at ?? p.published_at),
       changeFrequency: "monthly" as const,
       priority: 0.7,
       ...(p.cover_image_url ? { images: [p.cover_image_url.startsWith("http") ? p.cover_image_url : `${SITE_URL}${p.cover_image_url}`] } : {}),

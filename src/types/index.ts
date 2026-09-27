@@ -11,13 +11,16 @@ export interface Post {
   excerpt: string | null;
   content: string | null;
   cover_image_url: string | null;
+  cover_alt?: string | null;
   published_at: string;
   category: string;
   author: string;
   read_time: number;
+  meta_title?: string | null;
   meta_description: string | null;
   is_published: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export type PostInput = Omit<Post, "id" | "created_at"> & { id?: string };

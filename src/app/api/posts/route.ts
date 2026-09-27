@@ -1,11 +1,9 @@
-import { revalidatePath } from "next/cache";
 import type { NextRequest } from "next/server";
-import { getPosts } from "@/lib/api";
-import { createAdminSupabase } from "@/lib/supabase";
+import { getPosts, postFromDoc } from "@/lib/cms";
+import { getPayloadClient } from "@/lib/payload";
+import { canWritePosts, toPostData } from "@/lib/posts-api";
 import { postCreateSchema } from "@/lib/schemas";
-import { PG_UNIQUE_VIOLATION, error, isAuthorized, json, readJson, zodDetails } from "@/lib/http";
-import { slugify } from "@/lib/utils";
-import type { Post } from "@/types";
+import { error, json, readJson, zodDetails } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -21,31 +19,44 @@ export async function GET(req: NextRequest) {
   return json({ data: posts, meta: { total, limit, offset, count: posts.length } });
 }
 
-/** POST /api/posts — create a post. Requires `x-api-key`. */
+/** POST /api/posts — create a post (HTML `content` is converted to the CMS rich-text format).
+ *  Auth: `Authorization: users API-Key <key>` or the legacy `x-api-key`. */
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) return error(401, "Unauthorized — missing or invalid x-api-key header");
+  const payload = await getPayloadClient();
+  if (!(await canWritePosts(req, payload))) return error(401, "Unauthorized — send a Payload user API key or the x-api-key header");
   const parsed = await readJson(req);
   if (!parsed.ok) return error(400, "Request body must be valid JSON");
   const result = postCreateSchema.safeParse(parsed.body);
   if (!result.success) return error(422, "Validation failed", zodDetails(result.error));
 
-  const sb = createAdminSupabase();
-  if (!sb) return error(503, "Supabase is not configured (set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)");
-
   const input = result.data;
-  const row = {
-    ...input,
-    slug: input.slug ?? slugify(input.title),
-    read_time:
-      input.read_time ?? Math.max(1, Math.round((input.content ?? "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length / 220)),
-  };
+  if (!input.content) return error(422, "Validation failed", [{ field: "content", message: "content is required" }]);
+  // Same defaults as the old API: published, category "General".
+  const { data, cover } = await toPostData(payload, { category: "General", is_published: true, ...input });
+  if (!cover.ok) return error(422, "Validation failed", [{ field: "cover_image_url", message: cover.message }]);
 
-  const { data, error: dbError } = await sb.from("posts").insert(row).select().single();
-  if (dbError) {
-    if (dbError.code === PG_UNIQUE_VIOLATION) return error(409, `A post with slug "${row.slug}" already exists`);
-    return error(500, "Failed to create post", dbError.message);
+  const slug = String(data.slug ?? "");
+  if (slug) {
+    const taken = await payload.count({ collection: "posts", where: { slug: { equals: slug } }, overrideAccess: true });
+    if (taken.totalDocs) return error(409, `A post with slug "${slug}" already exists`);
   }
-  revalidatePath("/blog");
-  revalidatePath("/");
-  return json({ data: data as Post }, 201, { Location: `/api/posts/${(data as Post).slug}` });
+  try {
+    const doc = await payload.create({
+      collection: "posts",
+      data: { slug: "", ...data } as never,
+      draft: data._status !== "published",
+      overrideAccess: true,
+      depth: 1,
+    });
+    return json({ data: postFromDoc(doc) }, 201, { Location: `/api/posts/${doc.slug}` });
+  } catch (err) {
+    const e = err as { name?: string; message?: string };
+    if (e.name === "ValidationError") {
+      // A race on the unique slug surfaces here too; everything else is a real validation failure.
+      const slugClash = /slug/i.test(e.message ?? "");
+      return error(slugClash ? 409 : 422, e.message ?? "Validation failed");
+    }
+    console.error("[api/posts] create failed", err);
+    return error(500, "Failed to create post");
+  }
 }

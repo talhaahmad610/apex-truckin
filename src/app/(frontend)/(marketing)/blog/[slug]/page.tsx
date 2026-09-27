@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, Clock3, UserRound } from "lucide-react";
-import { getPostBySlug, getPosts, getRelatedPosts } from "@/lib/api";
+import { getPostBySlug, getPosts, getRelatedPosts } from "@/lib/cms";
 import { articleLd, breadcrumbLd, pageMetadata } from "@/lib/seo";
-import { absoluteUrl, buildToc, formatDate, sanitizeHtml } from "@/lib/utils";
+import { absoluteUrl, buildToc, formatDate } from "@/lib/utils";
 import { BlogCard } from "@/components/ui/BlogCard";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { ShareButtons } from "@/components/ui/ShareButtons";
 import { TableOfContents } from "@/components/ui/TableOfContents";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
+import { PreviewBanner } from "@/components/layout/PreviewBanner";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,10 +26,11 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const { isEnabled: draft } = await draftMode();
+  const post = await getPostBySlug(slug, { draft });
   if (!post) return { title: "Article not found", robots: { index: false } };
   return pageMetadata({
-    title: post.title,
+    title: post.meta_title || post.title,
     description: post.meta_description ?? post.excerpt ?? post.title,
     path: `/blog/${post.slug}`,
     image: post.cover_image_url ?? undefined,
@@ -39,9 +42,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const { isEnabled: draft } = await draftMode();
+  const post = await getPostBySlug(slug, { draft });
   if (!post) notFound();
-  const { html, toc } = buildToc(sanitizeHtml(post.content ?? ""));
+  // HTML is generated server-side from the CMS rich-text JSON (text escaped, URLs sanitized).
+  const { html, toc } = buildToc(post.content ?? "");
   const related = await getRelatedPosts(post, 3);
   const url = absoluteUrl(`/blog/${post.slug}`);
 
@@ -59,7 +64,7 @@ export default async function BlogPostPage({ params }: Props) {
       <article>
         <header className="relative isolate flex min-h-[80dvh] items-end overflow-hidden pb-16 pt-40">
           {post.cover_image_url && (
-            <Image src={post.cover_image_url} alt="" fill priority sizes="100vw" className="-z-20 object-cover" />
+            <Image src={post.cover_image_url} alt={post.cover_alt ?? ""} fill priority sizes="100vw" className="-z-20 object-cover" />
           )}
           <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,#0a0a0f_5%,rgba(10,10,15,0.75)_50%,rgba(10,10,15,0.5)_100%)]" />
           <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-8">
@@ -93,7 +98,6 @@ export default async function BlogPostPage({ params }: Props) {
         <div className="mx-auto grid max-w-[1100px] gap-12 px-4 py-16 sm:px-8 lg:grid-cols-[1fr_240px] lg:gap-16">
           <div>
             {post.excerpt && <p className="mb-10 text-xl leading-relaxed text-white/85">{post.excerpt}</p>}
-            {/* Content is CMS HTML, sanitized server-side in sanitizeHtml() */}
             <div className="prose-apex" dangerouslySetInnerHTML={{ __html: html }} />
             <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/60">Share this article</p>
@@ -132,6 +136,7 @@ export default async function BlogPostPage({ params }: Props) {
         </RevealWrapper>
       )}
       <CTABannerSection />
+      <PreviewBanner path={`/blog/${post.slug}`} />
     </>
   );
 }

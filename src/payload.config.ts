@@ -12,6 +12,8 @@ import { Media } from "./payload/collections/Media";
 import { Leads } from "./payload/collections/Leads";
 import { Subscribers } from "./payload/collections/Subscribers";
 import { Notifications } from "./payload/globals/Notifications";
+import { Posts } from "./payload/collections/Posts";
+import { Categories } from "./payload/collections/Categories";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -43,9 +45,14 @@ export default buildConfig({
   // Only accept cookie-authenticated requests originating from the site itself.
   csrf: [siteURL],
   cors: [siteURL],
-  collections: [Leads, Subscribers, Media, Users],
+  collections: [Leads, Subscribers, Posts, Categories, Media, Users],
   globals: [Notifications],
   editor: lexicalEditor(),
+  // Runs queued jobs (scheduled publishing; hero video processing) inside the long-running Node
+  // server. Needs a persistent process — fine on the planned VPS, not on serverless.
+  jobs: {
+    autoRun: [{ cron: "* * * * *", allQueues: true }],
+  },
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || "" },
     migrationDir: path.resolve(dirname, "migrations"),

@@ -1,4 +1,4 @@
-import { getFeaturedPosts } from "@/lib/api";
+import { getFeaturedPosts } from "@/lib/cms";
 import { json } from "@/lib/http";
 
 export const revalidate = 300;

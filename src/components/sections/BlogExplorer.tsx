@@ -7,11 +7,12 @@ import type { Post } from "@/types";
 import { BlogCard } from "@/components/ui/BlogCard";
 import { cn } from "@/lib/utils";
 
-const CATEGORIES = ["All", "Dispatch Tips", "Industry News", "Owner-Operator", "Regulations"] as const;
 const PER_PAGE = 6;
 
-export function BlogExplorer({ posts }: { posts: Post[] }) {
-  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("All");
+export function BlogExplorer({ posts, categories }: { posts: Post[]; categories: string[] }) {
+  // Filter chips come from the CMS (Blog → Categories), in their configured order.
+  const CATEGORIES = ["All", ...categories];
+  const [cat, setCat] = useState<string>("All");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
 

@@ -200,9 +200,8 @@ export const articleLd = (p: Post) => ({
   description: p.meta_description ?? p.excerpt ?? undefined,
   image: p.cover_image_url ? absoluteUrl(p.cover_image_url) : absoluteUrl(OG_DEFAULT),
   datePublished: p.published_at,
-  // No dateModified: the Post type has no real "last edited" timestamp distinct from
-  // published_at, and repeating datePublished here would be a meaningless, always-identical
-  // freshness signal. Add a genuine updated_at column before reintroducing this field.
+  // Real "last edited" time from the CMS; only emitted when it's actually after publication.
+  ...(p.updated_at && +new Date(p.updated_at) > +new Date(p.published_at) ? { dateModified: p.updated_at } : {}),
   author: { "@type": "Person", name: p.author },
   publisher: ORG_REF,
   mainEntityOfPage: absoluteUrl(`/blog/${p.slug}`),
