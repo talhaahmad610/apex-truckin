@@ -1,5 +1,4 @@
-// Seed content — used as local fallback when Supabase isn't configured
-// and as the source for supabase/seed.sql (scripts/generate-seed.ts).
+// Source content for the CMS seed (scripts/seed-cms.ts imports it into Payload).
 import type { Post, Testimonial } from "../types/index.ts";
 
 export const SEED_POSTS: Post[] = [

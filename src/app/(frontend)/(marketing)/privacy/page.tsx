@@ -44,7 +44,7 @@ export default async function PrivacyPage() {
       <ul>
         <li><strong>Freight brokers and shippers</strong> — carrier authority, insurance and contact details required to book loads on your behalf.</li>
         <li><strong>Factoring companies</strong> — invoices and supporting documents, when you use factoring.</li>
-        <li><strong>Service providers</strong> — hosting, database (Supabase), email and communications providers bound by confidentiality obligations.</li>
+        <li><strong>Service providers</strong> — hosting, database and file-storage, email and communications providers bound by confidentiality obligations.</li>
         <li><strong>Legal</strong> — when required by law, subpoena or to protect rights and safety.</li>
       </ul>
 
