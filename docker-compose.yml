@@ -1,0 +1,71 @@
+# Local development infrastructure for the Payload CMS: PostgreSQL + MinIO (S3-compatible storage).
+# `npm run infra:up` / `npm run infra:down`. Credentials below are LOCAL THROWAWAY VALUES —
+# change every one of them for production (and never expose these ports publicly as-is).
+#
+# MinIO stopped publishing free official images (minio/minio, quay.io/minio/*) in 2025; Chainguard
+# builds the same open-source MinIO server from source and publishes it free at `:latest`.
+name: apex-truckin
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: apex
+      POSTGRES_PASSWORD: apex_dev_password
+      POSTGRES_DB: apex_truckin
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apex -d apex_truckin"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: apex_minio
+      MINIO_ROOT_PASSWORD: apex_minio_dev_password
+    ports:
+      - "127.0.0.1:9000:9000" # S3 API
+      - "127.0.0.1:9001:9001" # web console
+    volumes:
+      - miniodata:/data
+
+  # One-shot: create the bucket and allow anonymous READ on the public prefixes only.
+  # `raw/` (unprocessed hero footage) and everything else stays private.
+  minio-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      - minio
+    restart: "no"
+    environment:
+      AWS_ACCESS_KEY_ID: apex_minio
+      AWS_SECRET_ACCESS_KEY: apex_minio_dev_password
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        S3="aws --endpoint-url http://minio:9000 s3api"
+        for i in $$(seq 1 30); do $$S3 list-buckets >/dev/null 2>&1 && break; sleep 2; done
+        $$S3 head-bucket --bucket apex-media 2>/dev/null || $$S3 create-bucket --bucket apex-media
+        $$S3 put-bucket-policy --bucket apex-media --policy '{
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"AWS": ["*"]},
+            "Action": ["s3:GetObject"],
+            "Resource": ["arn:aws:s3:::apex-media/media/*", "arn:aws:s3:::apex-media/flight/*"]
+          }]
+        }'
+        echo "apex-media bucket ready (public: media/, flight/ — everything else private)"
+
+volumes:
+  pgdata:
+  miniodata:

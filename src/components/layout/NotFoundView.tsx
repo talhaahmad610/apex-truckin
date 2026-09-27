@@ -3,9 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { DepthLayers } from "@/components/3d/DepthLayers";
 
-export const metadata = { title: "Page not found", robots: { index: false } };
-
-export default function NotFound() {
+export function NotFoundView() {
   return (
     <>
       <Navbar />

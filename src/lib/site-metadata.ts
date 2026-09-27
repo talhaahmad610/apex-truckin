@@ -1,23 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Geist } from "next/font/google";
-import { SmoothScroll } from "@/components/3d/SmoothScroll";
-import { JsonLd } from "@/components/ui/JsonLd";
-import { LazyToaster } from "@/components/layout/LazyToaster";
 import { COMPANY } from "@/lib/constants";
-import { SITE_URL, organizationLd, websiteLd } from "@/lib/seo";
-import "./globals.css";
+import { SITE_URL } from "@/lib/seo";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-const barlow = Barlow_Condensed({
-  subsets: ["latin"],
-  // 800 is loaded but never actually rendered anywhere on the site (verified exhaustively,
-  // including inherited weight/font-family through JSX ancestors) — 500/600/700 all are.
-  weight: ["500", "600", "700"],
-  variable: "--font-barlow",
-  display: "swap",
-});
-
-export const metadata: Metadata = {
+export const siteMetadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: `${COMPANY.name} — Truck Dispatch Services for Owner-Operators & Fleets`,
@@ -51,7 +36,7 @@ export const metadata: Metadata = {
   category: "transportation",
 };
 
-export const viewport: Viewport = {
+export const siteViewport: Viewport = {
   themeColor: "#0a0a0f",
   colorScheme: "dark",
   width: "device-width",
@@ -60,25 +45,3 @@ export const viewport: Viewport = {
   // than the screen lets touch scrolling pan the viewport and visibly un-pins `position: sticky`.
   minimumScale: 1,
 };
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="en-US" className={`${geist.variable} ${barlow.variable}`}>
-      <body className="grain min-h-[100dvh] antialiased">
-        <JsonLd data={[organizationLd(), websiteLd()]} />
-        <SmoothScroll />
-        {children}
-        <LazyToaster
-          position="bottom-right"
-          theme="dark"
-          toastOptions={{
-            classNames: {
-              toast: "!rounded-2xl !border !border-[rgba(245,166,35,0.2)] !bg-[#13151f]/95 !text-white !backdrop-blur-xl",
-              description: "!text-[#a0aec0]",
-            },
-          }}
-        />
-      </body>
-    </html>
-  );
-}
