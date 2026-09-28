@@ -1,17 +1,19 @@
 import { ChevronDown } from "lucide-react";
-import { FlightScrub, type FlightLeg } from "@/components/3d/FlightScrub";
+import { FlightScrub } from "@/components/3d/FlightScrub";
 import { CssTruck } from "@/components/3d/CssTruck";
 import { DepthLayers } from "@/components/3d/DepthLayers";
 import { Button } from "@/components/ui/Button";
 import { LiveDot } from "@/components/ui/Card";
 import { ICONS } from "@/components/blocks/icons";
 import { fillTokens } from "@/lib/tokens";
-import type { SiteInfo } from "@/types";
+import type { FlightLeg, SiteInfo } from "@/types";
 import type { FlightHeroBlock } from "@/payload-types";
 import type { IconKey } from "@/payload/blocks/iconOptions";
 import manifest from "@/lib/flight-manifest.json";
 
-const legs = manifest.legs as FlightLeg[];
+// Falls back to the static, build-time footage when the CMS has no ready legs (empty DB, or every
+// admin-uploaded leg failed to process) so the hero is never blank.
+const fallbackLegs = manifest.legs as FlightLeg[];
 
 const rise = (i: number) => ({ animationDelay: `${0.15 + i * 0.1}s` });
 const riseCls = "animate-[page-in_1s_cubic-bezier(0.32,0.72,0,1)_both]";
@@ -149,6 +151,7 @@ function FallbackStage() {
   );
 }
 
-export function HeroSection({ beats, site }: { beats: FlightHeroBlock["beats"]; site: SiteInfo }) {
-  return <FlightScrub legs={legs} beats={buildBeats(beats, site)} fallback={legs.length ? undefined : <FallbackStage />} />;
+export function HeroSection({ beats, legs, site }: { beats: FlightHeroBlock["beats"]; legs: FlightLeg[]; site: SiteInfo }) {
+  const playable = legs.length ? legs : fallbackLegs;
+  return <FlightScrub legs={playable} beats={buildBeats(beats, site)} fallback={playable.length ? undefined : <FallbackStage />} />;
 }

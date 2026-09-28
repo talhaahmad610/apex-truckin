@@ -118,6 +118,7 @@ export interface PricingTier {
   blurb: string;
   features: string[];
   cta: string;
+  ctaHref: string;
   featured?: boolean;
 }
 
@@ -139,6 +140,15 @@ export interface SiteContentData {
   steps: { title: string; icon: string; body: string }[];
   carrierRequirements: string[];
   pricingComparison: { feature: string; cells: { tierId: number; included: boolean; text: string }[] }[];
+}
+
+/** One leg of the scroll-scrubbed home hero (FlightScrub) — a processed clip + its poster. */
+export interface FlightLeg {
+  desktop: string;
+  mobile: string;
+  poster: string;
+  posterMobile: string;
+  duration: number;
 }
 
 /** A published page's fields needed for the sitemap and llms.txt — not the full layout. */

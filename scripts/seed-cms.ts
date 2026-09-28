@@ -11,6 +11,7 @@ import { getPayload, type Payload } from "payload";
 import config from "../src/payload.config";
 import { htmlToLexical } from "../src/payload/htmlToLexical";
 import { SEED_POSTS, SEED_TESTIMONIALS } from "../src/lib/seed-data";
+import flightManifest from "../src/lib/flight-manifest.json";
 import { COMPANY, GENERAL_FAQS, NAV_LINKS, PRICING, PRICING_FAQS, SERVICES, TEAM } from "../src/lib/constants";
 import {
   CARRIER_REQUIREMENTS,
@@ -121,7 +122,7 @@ async function seedBlog(payload: Payload) {
 
 /* ───────────────────────── Phase 4: site content ───────────────────────── */
 
-type Coll = "services" | "pricing-tiers" | "faqs" | "team" | "testimonials";
+type Coll = "services" | "pricing-tiers" | "faqs" | "team" | "testimonials" | "flight-sources";
 async function upsertBy(payload: Payload, collection: Coll, where: Record<string, unknown>, data: Record<string, unknown>) {
   const found = await payload.find({ collection, where: where as never, limit: 1, depth: 0 });
   if (found.docs[0]) {
@@ -214,6 +215,7 @@ async function seedPricing(payload: Payload) {
       blurb: t.blurb,
       features: rows(t.features),
       cta: t.cta,
+      ctaHref: t.ctaHref,
       featured: Boolean(t.featured),
       order,
     });
@@ -316,8 +318,46 @@ async function seedSiteContent(payload: Payload) {
   log("site content");
 }
 
-async function seedHomePage(payload: Payload) {
+// Per-leg overrides matching what was baked into the current public/flight/* files — kept in sync
+// with LEG_OPTS in scripts/process-footage.ts so a "Reprocess" click (once a raw file is attached)
+// reproduces the same look. Seeded rows carry no raw file, so reprocessing them fails with a clear
+// "upload a new clip" error instead of silently doing nothing.
+const FLIGHT_LEG_PARAMS: Record<number, { trimStart: number; grade: "standard" | "darker" }> = {
+  1: { trimStart: 0, grade: "standard" },
+  2: { trimStart: 0, grade: "darker" },
+  3: { trimStart: 2, grade: "standard" },
+  4: { trimStart: 0, grade: "standard" },
+};
+
+async function seedFlightSources(payload: Payload): Promise<number[]> {
+  const legs = flightManifest.legs as { desktop: string; mobile: string; poster: string; posterMobile: string; duration: number }[];
+  const ids: number[] = [];
+  for (const [i, leg] of legs.entries()) {
+    const n = i + 1;
+    const params = FLIGHT_LEG_PARAMS[n] ?? { trimStart: 0, grade: "standard" as const };
+    const id = await upsertBy(
+      payload,
+      "flight-sources",
+      { title: { equals: `Leg ${n}` } },
+      {
+        title: `Leg ${n}`,
+        trimStart: params.trimStart,
+        maxSeconds: 8,
+        grade: params.grade,
+        status: "ready",
+        output: { ...leg, hash: `seed-${n}` },
+      },
+    );
+    ids.push(id);
+  }
+  log(`flight sources: ${ids.length}`);
+  return ids;
+}
+
+async function seedHomePage(payload: Payload, flightSourceIds: number[]) {
   const layout = await Promise.all(HOME_LAYOUT.map((b) => resolveBlockImage(payload, b as Record<string, unknown>)));
+  const flightHero = layout.find((b) => b.blockType === "flightHero");
+  if (flightHero) flightHero.legs = flightSourceIds;
   await payload.updateGlobal({
     slug: "home-page",
     context: ctx(),
@@ -370,7 +410,8 @@ await seedFaqs(payload);
 await seedTeam(payload);
 await seedTestimonials(payload);
 await seedSiteContent(payload);
-await seedHomePage(payload);
+const flightSourceIds = await seedFlightSources(payload);
+await seedHomePage(payload, flightSourceIds);
 await seedPages(payload);
 log("done — the seed skips cache revalidation, so restart a running dev server (or save Site settings in /admin) to see the changes");
 process.exit(0);

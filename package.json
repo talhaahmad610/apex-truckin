@@ -10,7 +10,7 @@
     "preview": "next build && next start -p 3300",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "footage": "node scripts/process-footage.mjs",
+    "footage": "payload run scripts/process-footage.ts",
     "images": "node scripts/process-images.mjs",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
@@ -22,6 +22,7 @@
     "seed": "payload run scripts/seed-cms.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^5.9.1",
     "@payloadcms/db-postgres": "^3.90.2",

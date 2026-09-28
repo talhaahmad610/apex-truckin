@@ -1,8 +1,17 @@
 import "server-only";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import type { FAQ, PageSummary, Post, PricingTier, Service, SiteContentData, SiteInfo, TeamMember, Testimonial } from "@/types";
-import type { Category as CmsCategory, HomePage as CmsHomePage, Media as CmsMedia, Page as CmsPage, Post as CmsPost, Service as CmsService } from "@/payload-types";
+import type { FAQ, FlightLeg, PageSummary, Post, PricingTier, Service, SiteContentData, SiteInfo, TeamMember, Testimonial } from "@/types";
+import type {
+  Category as CmsCategory,
+  FlightHeroBlock,
+  FlightSource as CmsFlightSource,
+  HomePage as CmsHomePage,
+  Media as CmsMedia,
+  Page as CmsPage,
+  Post as CmsPost,
+  Service as CmsService,
+} from "@/payload-types";
 import { getPayloadClient } from "./payload";
 import { richTextToHtml } from "./richtext";
 import { parseHeadHtml } from "./head-html";
@@ -10,6 +19,21 @@ import { parseHeadHtml } from "./head-html";
 /* ───────────────────────── helpers ───────────────────────── */
 
 const isObj = <T extends object>(v: unknown): v is T => typeof v === "object" && v !== null;
+
+/** Ready legs, in the admin's chosen order — unpopulated ids (bad relationship depth) and
+ *  not-yet-ready legs are dropped rather than shown broken. Never throws on an empty CMS list;
+ *  the caller (HeroSection) falls back to the static manifest when this returns []. */
+export function legsFromBlock(legs: FlightHeroBlock["legs"]): FlightLeg[] {
+  return (legs ?? [])
+    .filter((l): l is CmsFlightSource => isObj<CmsFlightSource>(l) && l.status === "ready" && Boolean(l.output?.desktop))
+    .map((l) => ({
+      desktop: l.output!.desktop!,
+      mobile: l.output!.mobile!,
+      poster: l.output!.poster!,
+      posterMobile: l.output!.posterMobile!,
+      duration: l.output!.duration ?? 8,
+    }));
+}
 
 export function postFromDoc(d: CmsPost): Post {
   const cover = isObj<CmsMedia>(d.cover) ? d.cover : null;
@@ -248,6 +272,7 @@ export const getPricingTiers = unstable_cache(
       blurb: t.blurb,
       features: txt(t.features),
       cta: t.cta,
+      ctaHref: t.ctaHref || "/contact",
       ...(t.featured ? { featured: true } : {}),
     }));
   },

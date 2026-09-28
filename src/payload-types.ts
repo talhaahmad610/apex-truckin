@@ -103,6 +103,7 @@ export interface Config {
     categories: Category;
     pages: Page;
     media: Media;
+    'flight-sources': FlightSource;
     users: User;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -123,6 +124,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'flight-sources': FlightSourcesSelect<false> | FlightSourcesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -153,6 +155,7 @@ export interface Config {
   user: User;
   jobs: {
     tasks: {
+      processFlightLeg: TaskProcessFlightLeg;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -189,6 +192,10 @@ export interface FlightHeroBlock {
    * Untick to hide this section without deleting it.
    */
   enabled?: boolean | null;
+  /**
+   * Order = scroll order. Only legs with status Ready play; the rest are skipped.
+   */
+  legs?: (number | FlightSource)[] | null;
   /**
    * Each beat is a screenful of the scroll-scrubbed hero. The first beat is the intro screen (brand name, live-dot pill, 2 buttons); the rest are supporting screens.
    */
@@ -252,6 +259,53 @@ export interface FlightHeroBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'flightHero';
+}
+/**
+ * Upload a raw clip for one leg of the scroll-scrubbed home hero. It's encoded automatically — this can take a minute.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flight-sources".
+ */
+export interface FlightSource {
+  id: number;
+  /**
+   * e.g. "Leg 1 — desert highway"
+   */
+  title: string;
+  trimStart?: number | null;
+  /**
+   * The hero scrubs through this whole clip, so longer = slower scrub.
+   */
+  maxSeconds?: number | null;
+  grade?: ('standard' | 'darker') | null;
+  /**
+   * Tick and save to re-encode with the settings above.
+   */
+  reprocess?: boolean | null;
+  status?: ('queued' | 'processing' | 'ready' | 'failed') | null;
+  error?: string | null;
+  sourceDuration?: number | null;
+  sourceWidth?: number | null;
+  sourceHeight?: number | null;
+  output?: {
+    desktop?: string | null;
+    mobile?: string | null;
+    poster?: string | null;
+    posterMobile?: string | null;
+    duration?: number | null;
+    hash?: string | null;
+  };
+  prefix?: string | null;
+  _objectKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1226,6 +1280,10 @@ export interface PricingTier {
     | null;
   cta: string;
   /**
+   * A page path, mailto:, tel:, or a full https:// URL.
+   */
+  ctaHref?: string | null;
+  /**
    * Highlights the plan (Most popular).
    */
   featured?: boolean | null;
@@ -1474,7 +1532,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
+        taskSlug: 'inline' | 'processFlightLeg' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1507,7 +1565,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'processFlightLeg' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1564,6 +1622,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'flight-sources';
+        value: number | FlightSource;
       } | null)
     | ({
         relationTo: 'users';
@@ -1728,6 +1790,7 @@ export interface PricingTiersSelect<T extends boolean = true> {
         id?: T;
       };
   cta?: T;
+  ctaHref?: T;
   featured?: T;
   order?: T;
   updatedAt?: T;
@@ -2273,6 +2336,43 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flight-sources_select".
+ */
+export interface FlightSourcesSelect<T extends boolean = true> {
+  title?: T;
+  trimStart?: T;
+  maxSeconds?: T;
+  grade?: T;
+  reprocess?: T;
+  status?: T;
+  error?: T;
+  sourceDuration?: T;
+  sourceWidth?: T;
+  sourceHeight?: T;
+  output?:
+    | T
+    | {
+        desktop?: T;
+        mobile?: T;
+        poster?: T;
+        posterMobile?: T;
+        duration?: T;
+        hash?: T;
+      };
+  prefix?: T;
+  _objectKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2826,6 +2926,7 @@ export interface HomePageSelect<T extends boolean = true> {
  */
 export interface FlightHeroBlockSelect<T extends boolean = true> {
   enabled?: T;
+  legs?: T;
   beats?:
     | T
     | {
@@ -2929,6 +3030,16 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskProcessFlightLeg".
+ */
+export interface TaskProcessFlightLeg {
+  input: {
+    id: number;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

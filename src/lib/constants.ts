@@ -263,6 +263,7 @@ export const PRICING: Omit<PricingTier, "id">[] = [
     blurb: "For owner-operators who want a pro dispatcher without a monthly fee.",
     features: ["Load finding & negotiation", "Rate confirmation handling", "24/7 dispatch support", "Broker setup packets", "Up to 2 trucks"],
     cta: "Start with Starter",
+    ctaHref: "/contact",
   },
   {
     name: "Professional",
@@ -277,6 +278,7 @@ export const PRICING: Omit<PricingTier, "id">[] = [
       "Unlimited trucks",
     ],
     cta: "Go Professional",
+    ctaHref: "/contact",
     featured: true,
   },
   {
@@ -286,6 +288,7 @@ export const PRICING: Omit<PricingTier, "id">[] = [
     blurb: "Dedicated dispatch team and integrations for serious fleets.",
     features: ["Dedicated dispatcher", "Custom lane preferences", "Fleet management", "API access", "White-label option"],
     cta: "Talk to Sales",
+    ctaHref: "/contact",
   },
 ];
 

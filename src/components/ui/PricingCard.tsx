@@ -41,7 +41,7 @@ export function PricingCard({ tier }: { tier: PricingTier }) {
               </li>
             ))}
           </ul>
-          <Button href="/contact" variant={tier.featured ? "primary" : "ghost"} className="w-full justify-between">
+          <Button href={tier.ctaHref} variant={tier.featured ? "primary" : "ghost"} className="w-full justify-between">
             {tier.cta}
           </Button>
         </div>

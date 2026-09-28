@@ -3,14 +3,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+import type { FlightLeg } from "@/types";
 
-export interface FlightLeg {
-  desktop: string;
-  mobile: string;
-  poster: string;
-  posterMobile: string;
-  duration: number;
-}
+export type { FlightLeg };
 
 interface FlightScrubProps {
   legs: FlightLeg[];
@@ -265,7 +260,7 @@ export function FlightScrub({ legs, beats, fallback, vhPerBeat = 110, className 
           {fallback && <div className="absolute inset-0">{fallback}</div>}
           {legs.map((leg, i) => (
             <div
-              key={leg.desktop}
+              key={`${i}:${leg.desktop}`}
               ref={(el) => {
                 layerRefs.current[i] = el;
               }}

@@ -20,7 +20,21 @@ export const PricingTiers: CollectionConfig = {
     },
     { name: "blurb", type: "textarea", required: true, maxLength: 200 },
     textList("features", "Features", { maxLength: 80 }),
-    { name: "cta", label: "Button label", type: "text", required: true, maxLength: 40 },
+    {
+      type: "row",
+      fields: [
+        { name: "cta", label: "Button label", type: "text", required: true, maxLength: 40, admin: { width: "50%" } },
+        {
+          name: "ctaHref",
+          label: "Button link",
+          type: "text",
+          defaultValue: "/contact",
+          admin: { width: "50%", description: "A page path, mailto:, tel:, or a full https:// URL." },
+          validate: (v: unknown) =>
+            !v || (typeof v === "string" && /^(\/|mailto:|tel:|https:\/\/)/.test(v)) ? true : "Start with /, mailto:, tel:, or https://",
+        },
+      ],
+    },
     { name: "featured", type: "checkbox", admin: { position: "sidebar", description: "Highlights the plan (Most popular)." } },
     orderField,
   ],

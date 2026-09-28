@@ -1,3 +1,4 @@
+import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
@@ -20,11 +21,13 @@ import { Team } from "./payload/collections/Team";
 import { Faqs } from "./payload/collections/Faqs";
 import { PricingTiers } from "./payload/collections/PricingTiers";
 import { Pages } from "./payload/collections/Pages";
+import { FlightSources } from "./payload/collections/FlightSources";
 import { SiteSettings } from "./payload/globals/SiteSettings";
 import { SiteContent } from "./payload/globals/SiteContent";
 import { HomePage } from "./payload/globals/HomePage";
 import { HOME_ONLY_BLOCKS } from "./payload/blocks/home";
 import { REUSABLE_BLOCKS } from "./payload/blocks/shared";
+import { processFlightLeg } from "./payload/jobs/processFlightLeg";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -56,16 +59,48 @@ export default buildConfig({
   // Only accept cookie-authenticated requests originating from the site itself.
   csrf: [siteURL],
   cors: [siteURL],
-  collections: [Leads, Subscribers, Services, PricingTiers, Testimonials, Faqs, Team, Posts, Categories, Pages, Media, Users],
+  collections: [Leads, Subscribers, Services, PricingTiers, Testimonials, Faqs, Team, Posts, Categories, Pages, Media, FlightSources, Users],
   globals: [SiteSettings, SiteContent, HomePage, Notifications],
   // Every block referenced anywhere via `blockReferences` (home-page + pages layouts) must be
   // registered here — that's what blockReferences resolves against.
   blocks: [...HOME_ONLY_BLOCKS, ...REUSABLE_BLOCKS],
   editor: lexicalEditor(),
+  // Streams uploads to disk instead of buffering them in RAM — the default 20 MB fileSize limit
+  // and in-memory handler are fine for images but not for raw hero-video uploads up to ~250 MB.
+  upload: {
+    useTempFiles: true,
+    tempFileDir: path.join(os.tmpdir(), "apex-uploads"),
+    limits: { fileSize: 260 * 1024 * 1024 },
+    requestSizeLimit: 270 * 1024 * 1024,
+  },
   // Runs queued jobs (scheduled publishing; hero video processing) inside the long-running Node
   // server. Needs a persistent process — fine on the planned VPS, not on serverless.
   jobs: {
-    autoRun: [{ cron: "* * * * *", allQueues: true }],
+    tasks: [processFlightLeg],
+    // The default queue (scheduled publish, etc.) can run several jobs a tick; hero-footage
+    // encodes get their own queue with limit: 1 so at most one ffmpeg process runs at a time.
+    autoRun: [
+      { cron: "* * * * *", queue: "default", limit: 10 },
+      { cron: "* * * * *", queue: "video", limit: 1 },
+    ],
+    access: { run: ({ req }) => Boolean(req.user) },
+  },
+  // A crashed process can leave a job (and its doc) stuck at processing: true/"processing" forever
+  // — nothing re-picks it, since the claim query filters on processing === false. Reset on boot.
+  onInit: async (payload) => {
+    await payload.update({
+      collection: "payload-jobs",
+      where: { and: [{ taskSlug: { equals: "processFlightLeg" } }, { processing: { equals: true } }] },
+      data: { processing: false },
+      overrideAccess: true,
+    });
+    await payload.update({
+      collection: "flight-sources",
+      where: { status: { equals: "processing" } },
+      data: { status: "queued" },
+      context: { fromJob: true, disableRevalidate: true },
+      overrideAccess: true,
+    });
   },
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || "" },
@@ -102,6 +137,13 @@ export default buildConfig({
           disablePayloadAccessControl: true,
           generateFileURL: ({ filename, prefix }) =>
             `${s3PublicURL}/${s3Bucket}/${prefix ? `${prefix}/` : ""}${encodeURIComponent(filename)}`,
+        },
+        "flight-sources": {
+          prefix: "raw",
+          // No disablePayloadAccessControl / generateFileURL here, deliberately: the raw upload
+          // is never meant to be public. Its `url` stays Payload's own `/cms-api/flight-sources/
+          // file/<name>` route, which enforces the collection's access.read (admin-only) before
+          // streaming from S3 — and the bucket policy only opens `media/*` and `flight/*` anyway.
         },
       },
     }),

@@ -1,6 +1,6 @@
 import type { HomePage, Page, Faq as CmsFaq } from "@/payload-types";
 import type { FAQ } from "@/types";
-import { getFaqs, getServices, getSiteContent, getSiteSettings, getTeam, mediaUrl } from "@/lib/cms";
+import { getFaqs, getServices, getSiteContent, getSiteSettings, getTeam, legsFromBlock, mediaUrl } from "@/lib/cms";
 
 import { HeroSection } from "@/components/sections/HeroSection";
 import { HowItWorksSection } from "@/components/sections/HowItWorksSection";
@@ -72,7 +72,7 @@ export async function RenderBlocks({ blocks, ctx }: { blocks: LayoutBlock[]; ctx
 
       switch (block.blockType) {
         case "flightHero":
-          return <HeroSection key={block.id} beats={block.beats} site={site} />;
+          return <HeroSection key={block.id} beats={block.beats} legs={legsFromBlock(block.legs)} site={site} />;
 
         case "howItWorks":
           return (

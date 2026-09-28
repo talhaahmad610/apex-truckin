@@ -45,6 +45,16 @@ const beatFields = [
 
 export const FlightHero: Block = defineBlock("flightHero", { singular: "Flight hero", plural: "Flight heroes" }, [
   {
+    name: "legs",
+    label: "Hero footage",
+    type: "relationship",
+    relationTo: "flight-sources",
+    hasMany: true,
+    minRows: 1,
+    maxRows: 8,
+    admin: { description: "Order = scroll order. Only legs with status Ready play; the rest are skipped." },
+  },
+  {
     name: "beats",
     label: "Beats",
     type: "array",

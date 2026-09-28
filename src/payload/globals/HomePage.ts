@@ -16,7 +16,7 @@ export const HomePage: GlobalConfig = {
     preview: () => `${site()}/api/preview?path=${encodeURIComponent("/")}`,
   },
   versions: { drafts: { schedulePublish: true }, max: 25 },
-  access: { read: () => true, update: isAdmin },
+  access: { read: ({ req }) => (req.user ? true : { _status: { equals: "published" } }), update: isAdmin },
   fields: [
     {
       type: "tabs",
