@@ -1147,8 +1147,32 @@ export interface SiteSetting {
     linkedin?: string | null;
     x?: string | null;
   };
+  /**
+   * Publishes round-the-clock opening hours in Google's structured data. Turn off if the dispatch desk has set hours.
+   */
+  open24x7?: boolean | null;
   rateDisclaimer: string;
   grossDisclaimer: string;
+  /**
+   * Rendered in <head> — e.g. a Google Analytics (GA4) or Google Tag Manager snippet, a Meta Pixel base code, or extra <meta>/<link> tags.
+   */
+  headHtml?: string | null;
+  /**
+   * Rendered just before </body> — e.g. Google Tag Manager's <noscript> snippet, or a chat-widget script.
+   */
+  bodyEndHtml?: string | null;
+  /**
+   * One https:// origin per line. Only needed if a script above loads something from a domain not already covered automatically — e.g. a Tag Manager container that loads a vendor tag at runtime. The browser console will say "Refused to load/connect" and name the blocked domain.
+   */
+  extraAllowedDomains?: string | null;
+  /**
+   * The content value only, not the full <meta> tag.
+   */
+  googleSiteVerification?: string | null;
+  /**
+   * The content value only, not the full <meta> tag.
+   */
+  bingSiteVerification?: string | null;
   /**
    * Top navigation and mobile menu (also the footer Company column).
    */
@@ -1250,8 +1274,14 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         linkedin?: T;
         x?: T;
       };
+  open24x7?: T;
   rateDisclaimer?: T;
   grossDisclaimer?: T;
+  headHtml?: T;
+  bodyEndHtml?: T;
+  extraAllowedDomains?: T;
+  googleSiteVerification?: T;
+  bingSiteVerification?: T;
   nav?:
     | T
     | {

@@ -38,7 +38,13 @@ export async function pageMetadata({
       images: [{ url: image, width: 1200, height: 630, alt: title }],
       ...(type === "article" ? { publishedTime, authors } : {}),
     },
-    twitter: { card: "summary_large_image", title, description, images: [image], site: "@apextruckin" },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+      ...(site.socials.xHandle ? { site: site.socials.xHandle } : {}),
+    },
   };
 }
 
@@ -90,19 +96,23 @@ export const organizationLd = (site: SiteInfo, services: Service[]) => ({
     addressCountry: site.address.country,
   },
   areaServed: { "@type": "Country", name: "United States" },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    opens: "00:00",
-    closes: "23:59",
-  },
+  ...(site.open24x7
+    ? {
+        openingHoursSpecification: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          opens: "00:00",
+          closes: "23:59",
+        },
+      }
+    : {}),
   contactPoint: {
     "@type": "ContactPoint",
     telephone: tel(site),
     contactType: "customer service",
     areaServed: "US",
     availableLanguage: ["English", "Spanish"],
-    hoursAvailable: "Mo-Su 00:00-23:59",
+    ...(site.open24x7 ? { hoursAvailable: "Mo-Su 00:00-23:59" } : {}),
   },
   sameAs: Object.values(site.socials).filter(Boolean),
   // No aggregateRating here: a self-issued rating on your own Organization/LocalBusiness

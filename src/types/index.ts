@@ -85,13 +85,25 @@ export interface SiteInfo {
   whatsapp: string;
   address: { street: string; city: string; region: string; postal: string; country: string };
   hours: { days: string; time: string }[];
-  socials: { facebook: string; instagram: string; linkedin: string; x: string };
+  /** `xHandle` is derived from the `x` profile URL, e.g. "https://x.com/apextruckin" → "@apextruckin" (empty if unparseable). */
+  socials: { facebook: string; instagram: string; linkedin: string; x: string; xHandle: string };
+  /** Whether to publish round-the-clock opening hours in Google's structured data. */
+  open24x7: boolean;
   nav: NavLink[];
   footer: { headline: string; highlight: string; newsletterLabel: string; bottomLine: string; legalLinks: NavLink[]; image: string | null };
   /** Rate & earnings qualifiers shown next to any per-mile rate or weekly-gross figure. */
   rateDisclaimer: string;
   grossDisclaimer: string;
+  /** Admin-pasted head/footer scripts, parsed once when Site settings are read. */
+  scripts: { head: HeadNode[]; bodyEnd: HeadNode[]; extraAllowedDomains: string; googleSiteVerification: string; bingSiteVerification: string };
 }
+
+/** A single element parsed out of an admin-pasted HTML snippet (see src/lib/head-html.ts). */
+export type HeadNode =
+  | { kind: "script"; id: string; src?: string; inline?: string; attrs: Record<string, string> }
+  | { kind: "element"; tag: "meta" | "link" | "style"; attrs: Record<string, string>; text?: string }
+  | { kind: "noscript"; html: string }
+  | { kind: "raw"; html: string };
 
 export interface FAQ {
   q: string;

@@ -13,7 +13,7 @@ const routeDs = ROUTES.map((r) => routePath(r));
 const sideDs = SIDE_ROUTES.map((r) => routePath(r, 0.08));
 const cityKeys = Object.keys(CITIES) as CityKey[];
 
-export function CoverageMapSection() {
+export function CoverageMapSection({ siteName }: { siteName: string }) {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -132,7 +132,7 @@ export function CoverageMapSection() {
                 role="img"
                 aria-labelledby="map-title map-desc"
               >
-                <title id="map-title">Apex Truckin broker network map</title>
+                <title id="map-title">{`${siteName} broker network map`}</title>
                 <desc id="map-desc">A map of the contiguous United States showing an example dispatch lane connecting the West Coast, Texas & South, Midwest & Northeast, and Southeast broker networks.</desc>
                 <defs>
                   <linearGradient id="route-grad" x1="0" x2="1">

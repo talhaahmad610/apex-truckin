@@ -40,7 +40,7 @@ export async function MapEmbed() {
   return (
     <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#0d0e14]">
       <iframe
-        title="Apex Truckin office location — Dallas, TX"
+        title={`${COMPANY.name} office location — ${COMPANY.address.city}, ${COMPANY.address.region}`}
         src={`https://www.google.com/maps?q=${q}&output=embed`}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"

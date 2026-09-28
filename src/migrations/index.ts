@@ -3,6 +3,7 @@ import * as migration_20260927_203606_crm from './20260927_203606_crm';
 import * as migration_20260927_205541_blog from './20260927_205541_blog';
 import * as migration_20260927_213757_content from './20260927_213757_content';
 import * as migration_20260927_233659_rates from './20260927_233659_rates';
+import * as migration_20260928_185836_scripts_tracking from './20260928_185836_scripts_tracking';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20260927_233659_rates.up,
     down: migration_20260927_233659_rates.down,
-    name: '20260927_233659_rates'
+    name: '20260927_233659_rates',
+  },
+  {
+    up: migration_20260928_185836_scripts_tracking.up,
+    down: migration_20260928_185836_scripts_tracking.down,
+    name: '20260928_185836_scripts_tracking'
   },
 ];

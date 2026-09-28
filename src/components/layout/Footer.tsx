@@ -39,7 +39,7 @@ export async function Footer() {
 
         <div className="mt-20 grid grid-cols-2 gap-10 border-t border-white/10 pt-12 md:grid-cols-12">
           <div className="col-span-2 md:col-span-4">
-            <Logo />
+            <Logo name={COMPANY.name} />
             <address className="mt-6 space-y-1.5 text-sm not-italic text-muted">
               <p>{COMPANY.address.street}</p>
               <p>
@@ -59,7 +59,7 @@ export async function Footer() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Apex Truckin on ${label}`}
+                    aria-label={`${COMPANY.name} on ${label}`}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/70 ring-1 ring-white/10 transition-all duration-500 hover:-translate-y-0.5 hover:text-amber hover:ring-amber/40"
                   >
                     <Icon className="h-4 w-4" />

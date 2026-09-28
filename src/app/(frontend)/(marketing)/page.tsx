@@ -33,7 +33,7 @@ export default async function HomePage() {
       <AboutSection />
       <ServicesSection services={services} disclaimer={`${site.rateDisclaimer} ${site.grossDisclaimer}`} />
       <HowItWorksSection />
-      <CoverageMapSection />
+      <CoverageMapSection siteName={site.name} />
       <PricingSection />
       <BlogPreviewSection />
       <TestimonialsSection />

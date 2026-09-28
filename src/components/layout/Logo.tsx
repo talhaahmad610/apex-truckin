@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ name, className }: { name: string; className?: string }) {
+  const [first, ...rest] = name.trim().split(/\s+/);
   return (
-    <Link href="/" aria-label="Apex Truckin — home" className={cn("group inline-flex items-center gap-2.5", className)}>
+    <Link href="/" aria-label={`${name} — home`} className={cn("group inline-flex items-center gap-2.5", className)}>
       <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
         <defs>
           <linearGradient id="lg-apex" x1="0" y1="0" x2="1" y2="1">
@@ -16,7 +17,8 @@ export function Logo({ className }: { className?: string }) {
         <path d="M13.5 23 H26.5" stroke="url(#lg-apex)" strokeWidth="3.2" strokeLinecap="round" className="origin-center transition-transform duration-500 group-hover:scale-x-110" />
       </svg>
       <span className="font-display text-[22px] font-bold uppercase leading-none tracking-[0.04em]">
-        Apex<span className="text-amber"> Truckin</span>
+        {first}
+        {rest.length > 0 && <span className="text-amber"> {rest.join(" ")}</span>}
       </span>
     </Link>
   );

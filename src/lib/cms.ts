@@ -5,6 +5,7 @@ import type { FAQ, Post, PricingTier, Service, SiteInfo, TeamMember, Testimonial
 import type { Category as CmsCategory, Media as CmsMedia, Post as CmsPost, Service as CmsService } from "@/payload-types";
 import { getPayloadClient } from "./payload";
 import { richTextToHtml } from "./richtext";
+import { parseHeadHtml } from "./head-html";
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -124,6 +125,16 @@ const txt = (rows?: { text: string }[] | null) => (rows ?? []).map((r) => r.text
 const mediaUrl = (m: unknown) => (isObj<CmsMedia>(m) ? m.url ?? "" : "");
 const mediaAlt = (m: unknown) => (isObj<CmsMedia>(m) ? m.alt ?? "" : "");
 
+/** "https://x.com/apextruckin" → "@apextruckin". Empty if the URL is missing or has no path segment. */
+function xHandleFrom(url: string | undefined | null): string {
+  try {
+    const seg = new URL(url ?? "").pathname.split("/").filter(Boolean)[0];
+    return seg ? `@${seg}` : "";
+  } catch {
+    return "";
+  }
+}
+
 export const getSiteSettings = unstable_cache(
   async (): Promise<SiteInfo> => {
     const payload = await getPayloadClient();
@@ -146,7 +157,9 @@ export const getSiteSettings = unstable_cache(
         instagram: s.socials?.instagram ?? "",
         linkedin: s.socials?.linkedin ?? "",
         x: s.socials?.x ?? "",
+        xHandle: xHandleFrom(s.socials?.x),
       },
+      open24x7: s.open24x7 ?? true,
       nav: (s.nav ?? []).map((n) => ({ label: n.label, href: n.href })),
       footer: {
         headline: s.footerHeadline,
@@ -158,6 +171,13 @@ export const getSiteSettings = unstable_cache(
       },
       rateDisclaimer: s.rateDisclaimer,
       grossDisclaimer: s.grossDisclaimer,
+      scripts: {
+        head: parseHeadHtml(s.headHtml),
+        bodyEnd: parseHeadHtml(s.bodyEndHtml, { allowRaw: true }),
+        extraAllowedDomains: s.extraAllowedDomains ?? "",
+        googleSiteVerification: s.googleSiteVerification ?? "",
+        bingSiteVerification: s.bingSiteVerification ?? "",
+      },
     };
   },
   ["cms:site-settings"],

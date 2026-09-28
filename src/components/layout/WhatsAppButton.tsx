@@ -1,12 +1,12 @@
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
 
-export function WhatsAppButton({ href }: { href: string }) {
+export function WhatsAppButton({ href, name }: { href: string; name: string }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat with Apex Truckin dispatch on WhatsApp"
+      aria-label={`Chat with ${name} dispatch on WhatsApp`}
       className="group fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_12px_40px_-8px_rgba(37,211,102,0.6)] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-110 active:scale-95 md:bottom-8 md:right-8"
     >
       <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-[#25D366]/40 [animation-duration:2.4s]" />

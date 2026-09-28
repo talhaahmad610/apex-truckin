@@ -123,6 +123,13 @@ export const SiteSettings: GlobalConfig = {
                 { name: "x", label: "X (Twitter)", type: "text", defaultValue: "https://x.com/apextruckin" },
               ],
             },
+            {
+              name: "open24x7",
+              label: "Open 24/7",
+              type: "checkbox",
+              defaultValue: true,
+              admin: { description: "Publishes round-the-clock opening hours in Google's structured data. Turn off if the dispatch desk has set hours." },
+            },
           ],
         },
         {
@@ -146,6 +153,63 @@ export const SiteSettings: GlobalConfig = {
               maxLength: 300,
               defaultValue:
                 "Weekly gross is an estimate based on about 2,500–3,000 miles per week, before fuel, dispatch fees, insurance and other operating costs. It is not a guarantee of earnings — actual revenue varies by market, lanes, load availability, equipment and negotiated rates.",
+            },
+          ],
+        },
+        {
+          label: "Scripts & tracking",
+          description:
+            "Paste analytics, Tag Manager, pixel or verification snippets here — no code changes needed. They're pasted as-is into every public page (not /admin). Only <script>, <meta>, <link>, <style> and <noscript> tags are used; anything else is dropped. The site's security policy automatically allows exactly the domains these snippets need — nothing else. Test a change in Preview before publishing, and check the browser console for a blocked-by-CSP message if a script doesn't fire.",
+          fields: [
+            {
+              name: "headHtml",
+              label: "Head scripts",
+              type: "textarea",
+              maxLength: 20000,
+              admin: { rows: 10, description: "Rendered in <head> — e.g. a Google Analytics (GA4) or Google Tag Manager snippet, a Meta Pixel base code, or extra <meta>/<link> tags." },
+            },
+            {
+              name: "bodyEndHtml",
+              label: "Body-end scripts",
+              type: "textarea",
+              maxLength: 20000,
+              admin: { rows: 6, description: "Rendered just before </body> — e.g. Google Tag Manager's <noscript> snippet, or a chat-widget script." },
+            },
+            {
+              name: "extraAllowedDomains",
+              label: "Extra allowed domains",
+              type: "textarea",
+              maxLength: 2000,
+              admin: {
+                rows: 3,
+                description:
+                  "One https:// origin per line. Only needed if a script above loads something from a domain not already covered automatically — e.g. a Tag Manager container that loads a vendor tag at runtime. The browser console will say \"Refused to load/connect\" and name the blocked domain.",
+              },
+              validate: (v: unknown) => {
+                if (!v) return true;
+                const lines = String(v).split("\n").map((l) => l.trim()).filter(Boolean);
+                const bad = lines.find((l) => !/^https:\/\/[a-z0-9.*-]+(:\d+)?$/i.test(l));
+                return bad ? `Not a valid https:// origin: "${bad}"` : true;
+              },
+            },
+            {
+              type: "row",
+              fields: [
+                {
+                  name: "googleSiteVerification",
+                  label: "Google Search Console verification code",
+                  type: "text",
+                  maxLength: 100,
+                  admin: { width: "50%", description: "The content value only, not the full <meta> tag." },
+                },
+                {
+                  name: "bingSiteVerification",
+                  label: "Bing Webmaster verification code",
+                  type: "text",
+                  maxLength: 100,
+                  admin: { width: "50%", description: "The content value only, not the full <meta> tag." },
+                },
+              ],
             },
           ],
         },

@@ -8,7 +8,7 @@ export async function NotFoundView() {
   const site = await getSiteSettings();
   return (
     <>
-      <Navbar site={{ nav: site.nav, phone: site.phone, phoneHref: site.phoneHref, whatsapp: site.whatsapp }} />
+      <Navbar site={{ name: site.name, nav: site.nav, phone: site.phone, phoneHref: site.phoneHref, whatsapp: site.whatsapp }} />
       <main id="main" className="relative flex min-h-[100dvh] items-center overflow-hidden">
         <DepthLayers />
         <div className="relative mx-auto max-w-[1320px] px-4 sm:px-8">

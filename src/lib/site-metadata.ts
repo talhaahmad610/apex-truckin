@@ -11,7 +11,7 @@ export async function getSiteMetadata(): Promise<Metadata> {
     template: `%s | ${COMPANY.name}`,
   },
   description:
-    "Apex Truckin is a 24/7 truck dispatch service for owner-operators and fleets. Dry van, flatbed, reefer, hotshot, step deck, power only & box truck dispatch across all 48 states.",
+    `${COMPANY.name} is a 24/7 truck dispatch service for owner-operators and fleets. Dry van, flatbed, reefer, hotshot, step deck, power only & box truck dispatch across all 48 states.`,
   applicationName: COMPANY.name,
   keywords: [
     "truck dispatch services",
@@ -31,11 +31,19 @@ export async function getSiteMetadata(): Promise<Metadata> {
     siteName: COMPANY.name,
     locale: "en_US",
     url: "/",
-    images: [{ url: "/images/og-default.jpg", width: 1200, height: 630, alt: "Apex Truckin — Built to Haul. Built to Win." }],
+    images: [{ url: "/images/og-default.jpg", width: 1200, height: 630, alt: `${COMPANY.name} — ${COMPANY.tagline}` }],
   },
-  twitter: { card: "summary_large_image", site: "@apextruckin" },
+  twitter: { card: "summary_large_image", ...(COMPANY.socials.xHandle ? { site: COMPANY.socials.xHandle } : {}) },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   category: "transportation",
+  ...(COMPANY.scripts.googleSiteVerification || COMPANY.scripts.bingSiteVerification
+    ? {
+        verification: {
+          ...(COMPANY.scripts.googleSiteVerification ? { google: COMPANY.scripts.googleSiteVerification } : {}),
+          ...(COMPANY.scripts.bingSiteVerification ? { other: { "msvalidate.01": COMPANY.scripts.bingSiteVerification } } : {}),
+        },
+      }
+    : {}),
   };
 }
 

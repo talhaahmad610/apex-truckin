@@ -2,21 +2,14 @@ import type { NextConfig } from "next";
 import path from "path";
 import { fileURLToPath } from "url";
 import { withPayload } from "@payloadcms/next/withPayload";
+import { getMediaOrigin } from "./src/lib/media-origin";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const isDev = process.env.NODE_ENV !== "production";
 
 // Public origin of the MinIO/S3 media storage (images, processed hero clips).
-const media = (() => {
-  try {
-    const raw = process.env.S3_PUBLIC_URL || process.env.S3_ENDPOINT;
-    return raw ? new URL(raw) : null;
-  } catch {
-    return null;
-  }
-})();
-const mediaOrigin = media ? media.origin : "";
-const isLoopbackMedia = !!media && ["localhost", "127.0.0.1", "[::1]"].includes(media.hostname);
+const { origin: mediaOrigin, isLoopback: isLoopbackMedia } = getMediaOrigin();
+const media = mediaOrigin ? new URL(mediaOrigin) : null;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -49,30 +42,18 @@ const nextConfig: NextConfig = {
     // above still limits the optimizer to that single media origin either way.
     dangerouslyAllowLocalIP: isDev || isLoopbackMedia,
   },
+  // jsdom (used server-side to parse admin-pasted <head>/<footer> script snippets, see
+  // src/lib/head-html.ts) must run as real Node, not be bundled into the server graph.
+  serverExternalPackages: ["jsdom"],
   async headers() {
-    // Public site CSP. Next.js needs 'unsafe-inline' for script-src (its own hydration bootstrap and
-    // the JSON-LD <script> tags) and style-src (inline styles from GSAP/Framer Motion) short of a
-    // nonce-based setup. frame-src allows the Google Maps embed on /contact.
-    //
-    // 'unsafe-eval' is added in dev ONLY: the dev bundler wraps modules in eval(...) for HMR, and
-    // without this the browser throws "EvalError: ... violates ... script-src" on every load.
-    // Production bundles never use eval() for their own code, so this stays out of prod.
-    const siteCsp = [
-      "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-      "style-src 'self' 'unsafe-inline'",
-      `img-src 'self' data: https://images.pexels.com https://images.unsplash.com ${mediaOrigin}`.trim(),
-      "font-src 'self' data:",
-      // 'blob:' is required: the hero video plays from URL.createObjectURL() blobs, not files;
-      // the media origin is needed once hero clips are served from storage (fetched as blobs).
-      `media-src 'self' blob: ${mediaOrigin}`.trim(),
-      `connect-src 'self' ${mediaOrigin}`.trim(),
-      "frame-src https://www.google.com",
-      "frame-ancestors 'self'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "object-src 'none'",
-    ].join("; ");
+    // Public site CSP: only `frame-ancestors` — the one CSP directive the spec does NOT let a
+    // <meta http-equiv> tag set (only an HTTP header can). Every other directive (script-src,
+    // connect-src, img-src, frame-src, etc.) is rendered as a <meta> tag by SiteDocument.tsx,
+    // rebuilt on every request from Site settings → Scripts & tracking (src/lib/csp.ts), so an
+    // admin-pasted analytics/pixel snippet is allowed without a next.config.ts change or redeploy.
+    // A header AND a meta CSP for the same directive would combine restrictively (the browser
+    // enforces the intersection), which is why the static list here is deliberately this short.
+    const siteCsp = "frame-ancestors 'self'";
 
     // Payload admin: its own, looser-but-still-restrictive policy (the admin UI uses blob:/data:
     // previews and inline styles). Never applied to public pages.

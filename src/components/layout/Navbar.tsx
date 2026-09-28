@@ -15,7 +15,7 @@ import { Logo } from "./Logo";
 const loadMobileMenu = () => import("./MobileMenu");
 const MobileMenu = dynamic(() => loadMobileMenu().then((m) => m.MobileMenu), { ssr: false });
 
-export type NavSite = Pick<SiteInfo, "nav" | "phone" | "phoneHref" | "whatsapp">;
+export type NavSite = Pick<SiteInfo, "name" | "nav" | "phone" | "phoneHref" | "whatsapp">;
 
 export function Navbar({ site }: { site: NavSite }) {
   const { scrolled, progressRef } = useScrollProgress(40);
@@ -50,7 +50,7 @@ export function Navbar({ site }: { site: NavSite }) {
               : "max-w-[1320px] border border-transparent bg-transparent py-3 pl-3 pr-2",
           )}
         >
-          <Logo />
+          <Logo name={site.name} />
           <ul className="hidden items-center gap-1 lg:flex">
             {site.nav.map((l) => {
               const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
