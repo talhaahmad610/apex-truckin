@@ -111,6 +111,7 @@ export interface FAQ {
 }
 
 export interface PricingTier {
+  id: number;
   name: string;
   price: string;
   unit: string;
@@ -128,4 +129,25 @@ export interface NavLink {
 export interface ApiError {
   error: string;
   details?: unknown;
+}
+
+/** Lists shown on more than one page — the Payload "Shared content" global. */
+export interface SiteContentData {
+  marqueeItems: string[];
+  stats: { value: number; decimals: number; suffix: string; label: string }[];
+  fullService: { title: string; body: string }[];
+  steps: { title: string; icon: string; body: string }[];
+  carrierRequirements: string[];
+  pricingComparison: { feature: string; cells: { tierId: number; included: boolean; text: string }[] }[];
+}
+
+/** A published page's fields needed for the sitemap and llms.txt — not the full layout. */
+export interface PageSummary {
+  title: string;
+  slug: string;
+  showInSitemap: boolean;
+  sitemapPriority: number;
+  changeFrequency: "weekly" | "monthly" | "yearly";
+  updatedAt: string;
+  description: string | null;
 }

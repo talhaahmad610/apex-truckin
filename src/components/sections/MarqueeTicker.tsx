@@ -1,8 +1,7 @@
-import { MARQUEE_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-export function MarqueeTicker({ className, reverse = false }: { className?: string; reverse?: boolean }) {
-  const row = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+export function MarqueeTicker({ items, className, reverse = false }: { items: string[]; className?: string; reverse?: boolean }) {
+  const row = [...items, ...items];
   return (
     <div
       className={cn(
@@ -10,7 +9,7 @@ export function MarqueeTicker({ className, reverse = false }: { className?: stri
         className,
       )}
     >
-      <p className="sr-only">Equipment we dispatch: {MARQUEE_ITEMS.join(", ")}.</p>
+      <p className="sr-only">Equipment we dispatch: {items.join(", ")}.</p>
       <div
         aria-hidden
         className={cn("flex w-max animate-marquee items-center hover:[animation-play-state:paused]", reverse && "[animation-direction:reverse]")}

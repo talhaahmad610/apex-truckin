@@ -17,7 +17,8 @@ export const Team: CollectionConfig = {
     orderField,
   ],
   hooks: {
-    afterChange: [({ req }) => revalidate(req, { tags: ["team"], paths: ["/about"] })],
-    afterDelete: [({ req }) => revalidate(req, { tags: ["team"], paths: ["/about"] })],
+    // `everything: true` because a "team" block can now be added to any builder page.
+    afterChange: [({ req }) => revalidate(req, { tags: ["team"], everything: true })],
+    afterDelete: [({ req }) => revalidate(req, { tags: ["team"], everything: true })],
   },
 };

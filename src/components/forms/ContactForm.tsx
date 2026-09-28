@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -144,7 +145,7 @@ export function ContactForm({ className, equipmentTypes }: { className?: string;
       </div>
       <div className="flex flex-col gap-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-white/45">
-          By submitting you agree to our <a href="/privacy" className="underline hover:text-amber">privacy policy</a>. No spam, ever.
+          By submitting you agree to our <Link href="/privacy" className="underline hover:text-amber">privacy policy</Link>. No spam, ever.
         </p>
         <Button type="submit" size="lg" disabled={isSubmitting} icon={isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}>
           {isSubmitting ? "Sending…" : "Send Message"}

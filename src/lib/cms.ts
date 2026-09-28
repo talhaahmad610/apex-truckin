@@ -1,8 +1,8 @@
 import "server-only";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import type { FAQ, Post, PricingTier, Service, SiteInfo, TeamMember, Testimonial } from "@/types";
-import type { Category as CmsCategory, Media as CmsMedia, Post as CmsPost, Service as CmsService } from "@/payload-types";
+import type { FAQ, PageSummary, Post, PricingTier, Service, SiteContentData, SiteInfo, TeamMember, Testimonial } from "@/types";
+import type { Category as CmsCategory, HomePage as CmsHomePage, Media as CmsMedia, Page as CmsPage, Post as CmsPost, Service as CmsService } from "@/payload-types";
 import { getPayloadClient } from "./payload";
 import { richTextToHtml } from "./richtext";
 import { parseHeadHtml } from "./head-html";
@@ -122,7 +122,8 @@ export const getCategories = unstable_cache(
 /* ───────────────────────── site settings ───────────────────────── */
 
 const txt = (rows?: { text: string }[] | null) => (rows ?? []).map((r) => r.text);
-const mediaUrl = (m: unknown) => (isObj<CmsMedia>(m) ? m.url ?? "" : "");
+/** A Payload upload relationship value at any depth → its public URL, or "" if unset/unpopulated. */
+export const mediaUrl = (m: unknown) => (isObj<CmsMedia>(m) ? m.url ?? "" : "");
 const mediaAlt = (m: unknown) => (isObj<CmsMedia>(m) ? m.alt ?? "" : "");
 
 /** "https://x.com/apextruckin" → "@apextruckin". Empty if the URL is missing or has no path segment. */
@@ -240,6 +241,7 @@ export const getPricingTiers = unstable_cache(
     const payload = await getPayloadClient();
     const res = await payload.find({ collection: "pricing-tiers", sort: "order", limit: 20, depth: 0, overrideAccess: true });
     return res.docs.map((t) => ({
+      id: t.id,
       name: t.name,
       price: t.price,
       unit: t.unit,
@@ -290,4 +292,86 @@ export const getTestimonials = unstable_cache(
   },
   ["cms:testimonials"],
   { tags: ["testimonials"], revalidate: 3600 },
+);
+
+/* ───────────────────────── shared content ───────────────────────── */
+
+export const getSiteContent = unstable_cache(
+  async (): Promise<SiteContentData> => {
+    const payload = await getPayloadClient();
+    const c = await payload.findGlobal({ slug: "site-content", depth: 0, overrideAccess: true });
+    return {
+      marqueeItems: txt(c.marqueeItems),
+      stats: (c.stats ?? []).map((s) => ({ value: s.value, decimals: s.decimals ?? 0, suffix: s.suffix ?? "", label: s.label })),
+      fullService: (c.fullService ?? []).map((f) => ({ title: f.title, body: f.body })),
+      steps: (c.steps ?? []).map((s) => ({ title: s.title, icon: s.icon ?? "phone-call", body: s.body })),
+      carrierRequirements: txt(c.carrierRequirements),
+      pricingComparison: (c.pricingComparison ?? []).map((r) => ({
+        feature: r.feature,
+        cells: (r.cells ?? []).map((cell) => ({
+          tierId: typeof cell.tier === "object" && cell.tier !== null ? cell.tier.id : (cell.tier as number),
+          included: Boolean(cell.included),
+          text: cell.text ?? "",
+        })),
+      })),
+    };
+  },
+  ["cms:site-content"],
+  { tags: ["content"], revalidate: 3600 },
+);
+
+/* ───────────────────────── home page & builder pages ───────────────────────── */
+
+const fetchHomePage = unstable_cache(
+  async (): Promise<CmsHomePage> => {
+    const payload = await getPayloadClient();
+    return payload.findGlobal({ slug: "home-page", depth: 2, overrideAccess: true });
+  },
+  ["cms:home-page"],
+  { tags: ["home"], revalidate: 3600 },
+);
+
+/** `draft: true` (preview mode only) reads the latest unpublished version, uncached. */
+export const getHomePage = cache(async ({ draft = false }: { draft?: boolean } = {}): Promise<CmsHomePage> => {
+  if (!draft) return fetchHomePage();
+  const payload = await getPayloadClient();
+  return payload.findGlobal({ slug: "home-page", draft: true, depth: 2, overrideAccess: true });
+});
+
+const fetchPageBySlug = (slug: string) =>
+  unstable_cache(
+    async (): Promise<CmsPage | null> => {
+      const payload = await getPayloadClient();
+      const res = await payload.find({ collection: "pages", where: { and: [{ slug: { equals: slug } }, { _status: { equals: "published" } }] }, limit: 1, depth: 2, overrideAccess: true });
+      return res.docs[0] ?? null;
+    },
+    ["cms:page-by-slug", slug],
+    { tags: ["pages", `page:${slug}`], revalidate: 3600 },
+  )();
+
+/** `draft: true` (preview mode only) reads the latest unpublished version, uncached. */
+export const getPageBySlug = cache(async (slug: string, { draft = false }: { draft?: boolean } = {}): Promise<CmsPage | null> => {
+  if (!draft) return fetchPageBySlug(slug);
+  const payload = await getPayloadClient();
+  const res = await payload.find({ collection: "pages", where: { slug: { equals: slug } }, draft: true, limit: 1, depth: 2, overrideAccess: true });
+  return res.docs[0] ?? null;
+});
+
+/** Published pages' sitemap/llms.txt fields only — not the full layout. */
+export const getPublishedPages = unstable_cache(
+  async (): Promise<PageSummary[]> => {
+    const payload = await getPayloadClient();
+    const res = await payload.find({ collection: "pages", where: { _status: { equals: "published" } }, limit: 200, depth: 0, overrideAccess: true });
+    return res.docs.map((p) => ({
+      title: p.title,
+      slug: p.slug,
+      showInSitemap: p.showInSitemap ?? true,
+      sitemapPriority: p.sitemapPriority ?? 0.7,
+      changeFrequency: p.changeFrequency ?? "monthly",
+      updatedAt: p.updatedAt,
+      description: p.meta?.description ?? null,
+    }));
+  },
+  ["cms:pages"],
+  { tags: ["pages"], revalidate: 3600 },
 );

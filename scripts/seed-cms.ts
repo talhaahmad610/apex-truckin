@@ -12,6 +12,18 @@ import config from "../src/payload.config";
 import { htmlToLexical } from "../src/payload/htmlToLexical";
 import { SEED_POSTS, SEED_TESTIMONIALS } from "../src/lib/seed-data";
 import { COMPANY, GENERAL_FAQS, NAV_LINKS, PRICING, PRICING_FAQS, SERVICES, TEAM } from "../src/lib/constants";
+import {
+  CARRIER_REQUIREMENTS,
+  FULL_SERVICE,
+  HOME_LAYOUT,
+  MARQUEE_ITEMS,
+  PAGES,
+  PRICING_COMPARISON,
+  PRIVACY_HTML,
+  STATS,
+  STEPS,
+  TERMS_HTML,
+} from "../src/lib/seed-pages";
 
 // A FRESH object per call: Payload hooks mutate req.context (the S3 plugin sets skipCloudStorage
 // after an upload), so a shared object would make every later upload silently skip storage.
@@ -65,8 +77,8 @@ export async function ensureMedia(payload: Payload, publicPath: string, alt: str
   return id;
 }
 
-async function upsert(payload: Payload, collection: "categories" | "posts", where: Record<string, unknown>, data: Record<string, unknown>, extra: Record<string, unknown> = {}) {
-  const found = await payload.find({ collection, where: where as never, limit: 1, depth: 0, draft: collection === "posts" });
+async function upsert(payload: Payload, collection: "categories" | "posts" | "pages", where: Record<string, unknown>, data: Record<string, unknown>, extra: Record<string, unknown> = {}) {
+  const found = await payload.find({ collection, where: where as never, limit: 1, depth: 0, draft: collection !== "categories" });
   const existing = found.docs[0];
   if (existing) {
     await payload.update({ collection, id: existing.id, data: data as never, context: ctx(), ...extra });
@@ -263,6 +275,91 @@ async function seedTestimonials(payload: Payload) {
   log(`testimonials: ${sorted.length}`);
 }
 
+/* ───────────────────────── Phase 5: page builder ───────────────────────── */
+
+/** Resolves a block's `image: "/images/…"` field (if any) to a media id. Blocks with no image
+ *  field pass through unchanged. Doesn't recurse into nested arrays — none of the seeded blocks
+ *  carry images below the top level. */
+async function resolveBlockImage(payload: Payload, block: Record<string, unknown>): Promise<Record<string, unknown>> {
+  if (typeof block.image === "string" && block.image.startsWith("/")) {
+    const alt = (block.heading as string | undefined) ?? (block.eyebrow as string | undefined) ?? "";
+    return { ...block, image: await ensureMedia(payload, block.image, alt) };
+  }
+  return block;
+}
+
+async function seedSiteContent(payload: Payload) {
+  // Comparison cells reference real pricing-tier ids — look them up by name after seedPricing.
+  const tiers = await payload.find({ collection: "pricing-tiers", limit: 20, depth: 0 });
+  const tierId = (name: string) => tiers.docs.find((t) => t.name.toLowerCase().startsWith(name))?.id;
+  const [starter, pro, ent] = [tierId("starter"), tierId("professional"), tierId("enterprise")];
+
+  await payload.updateGlobal({
+    slug: "site-content",
+    context: ctx(),
+    data: {
+      marqueeItems: rows(MARQUEE_ITEMS),
+      stats: STATS,
+      fullService: FULL_SERVICE,
+      steps: STEPS,
+      carrierRequirements: rows(CARRIER_REQUIREMENTS),
+      pricingComparison: PRICING_COMPARISON.map((r) => ({
+        feature: r.feature,
+        cells: [
+          { tier: starter, included: r.starter === true, text: typeof r.starter === "string" ? r.starter : "" },
+          { tier: pro, included: r.pro === true, text: typeof r.pro === "string" ? r.pro : "" },
+          { tier: ent, included: r.ent === true, text: typeof r.ent === "string" ? r.ent : "" },
+        ],
+      })),
+    },
+  });
+  log("site content");
+}
+
+async function seedHomePage(payload: Payload) {
+  const layout = await Promise.all(HOME_LAYOUT.map((b) => resolveBlockImage(payload, b as Record<string, unknown>)));
+  await payload.updateGlobal({
+    slug: "home-page",
+    context: ctx(),
+    data: {
+      layout: layout as never,
+      _status: "published",
+      meta: {
+        title: "Truck Dispatch Services for Owner-Operators & Fleets",
+        description:
+          "24/7 truck dispatch for owner-operators and fleets: dry van, flatbed, reefer, hotshot, step deck, power only and box truck. Higher-paying loads, no forced dispatch.",
+      },
+    },
+  });
+  log("home page");
+}
+
+async function seedPages(payload: Payload) {
+  for (const p of PAGES) {
+    const layout = await Promise.all(p.layout.map((b) => resolveBlockImage(payload, b as Record<string, unknown>)));
+    if (p.slug === "privacy" || p.slug === "terms") {
+      const richTextBlock = layout.find((b) => b.blockType === "richText");
+      if (richTextBlock) richTextBlock.content = await htmlToLexical(payload, p.slug === "privacy" ? PRIVACY_HTML : TERMS_HTML);
+    }
+    await upsert(
+      payload,
+      "pages",
+      { slug: { equals: p.slug } },
+      {
+        title: p.title,
+        slug: p.slug,
+        layout: layout as never,
+        meta: p.meta,
+        showInSitemap: true,
+        sitemapPriority: p.sitemapPriority,
+        changeFrequency: p.changeFrequency,
+        _status: "published",
+      },
+    );
+  }
+  log(`pages: ${PAGES.length}`);
+}
+
 const payload = await getPayload({ config });
 await ensureAdmin(payload);
 await seedBlog(payload);
@@ -272,5 +369,8 @@ await seedPricing(payload);
 await seedFaqs(payload);
 await seedTeam(payload);
 await seedTestimonials(payload);
+await seedSiteContent(payload);
+await seedHomePage(payload);
+await seedPages(payload);
 log("done — the seed skips cache revalidation, so restart a running dev server (or save Site settings in /admin) to see the changes");
 process.exit(0);

@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import { getTestimonials } from "@/lib/cms";
+import type { SiteInfo } from "@/types";
 import { TestimonialCard, TestimonialSkeleton } from "@/components/ui/TestimonialCard";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { TestimonialsCarousel } from "./TestimonialsCarousel";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { GradientHeading } from "@/components/blocks/GradientHeading";
 import { Stars } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -44,15 +46,32 @@ async function TestimonialGrid() {
   );
 }
 
-export function TestimonialsSection() {
+export function TestimonialsSection({
+  n,
+  label = "Carrier voice",
+  heading = "Real drivers.",
+  highlight = "Real results.",
+  site,
+}: {
+  n?: string;
+  label?: string;
+  heading?: string;
+  highlight?: string | null;
+  site: SiteInfo;
+}) {
   return (
     <RevealWrapper as="section" id="testimonials" className="relative py-24 md:py-40">
       <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
         <div className="mb-14 max-w-3xl md:mb-20">
-          <SectionLabel n="06" label="Carrier voice" />
-          <h2 data-reveal="up" className="mt-6 font-display text-[clamp(2.5rem,6vw,5.25rem)] font-bold uppercase leading-[0.92]">
-            Real drivers. <span className="text-gradient">Real results.</span>
-          </h2>
+          <SectionLabel n={n} label={label} />
+          <GradientHeading
+            as="h2"
+            data-reveal="up"
+            className="mt-6 font-display text-[clamp(2.5rem,6vw,5.25rem)] font-bold uppercase leading-[0.92]"
+            heading={heading}
+            highlight={highlight}
+            site={site}
+          />
         </div>
         <Suspense
           fallback={

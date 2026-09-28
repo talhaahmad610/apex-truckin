@@ -4,15 +4,32 @@ import Image from "next/image";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
-import type { Service } from "@/types";
+import type { Service, SiteInfo } from "@/types";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Button } from "@/components/ui/Button";
+import { GradientHeading } from "@/components/blocks/GradientHeading";
 import { cn } from "@/lib/utils";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
-export function ServicesSection({ services: SERVICES, disclaimer }: { services: Service[]; disclaimer?: string }) {
+export function ServicesSection({
+  services: SERVICES,
+  disclaimer,
+  n,
+  label = "What we do",
+  heading = "The right dispatch for",
+  highlight = "the right haul.",
+  site,
+}: {
+  services: Service[];
+  disclaimer?: string;
+  n?: string;
+  label?: string;
+  heading?: string;
+  highlight?: string | null;
+  site: SiteInfo;
+}) {
   const [active, setActive] = useState(0);
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();
@@ -36,10 +53,15 @@ export function ServicesSection({ services: SERVICES, disclaimer }: { services: 
     <RevealWrapper as="section" id="services" className="relative py-24 md:py-40">
       <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
         <div className="mb-14 max-w-3xl md:mb-20">
-          <SectionLabel n="02" label="What we do" />
-          <h2 data-reveal="up" className="mt-6 font-display text-[clamp(2.5rem,6vw,5.25rem)] font-bold uppercase leading-[0.92]">
-            The right dispatch for <span className="text-gradient">the right haul.</span>
-          </h2>
+          <SectionLabel n={n} label={label} />
+          <GradientHeading
+            as="h2"
+            data-reveal="up"
+            className="mt-6 font-display text-[clamp(2.5rem,6vw,5.25rem)] font-bold uppercase leading-[0.92]"
+            heading={heading}
+            highlight={highlight}
+            site={site}
+          />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">

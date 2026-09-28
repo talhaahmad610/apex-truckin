@@ -10,8 +10,9 @@ const toSlug = (s: string) =>
     .replace(/[\s-]+/g, "-")
     .slice(0, 120);
 
-/** URL slug: auto-filled from `from` when left empty, always normalized to kebab-case. */
-export const slugField = (from = "title"): Field => ({
+/** URL slug: auto-filled from `from` when left empty, always normalized to kebab-case. `reserved`
+ *  rejects slugs that would collide with a real route (used by the `pages` collection). */
+export const slugField = (from = "title", reserved: Set<string> = new Set()): Field => ({
   name: "slug",
   type: "text",
   required: true,
@@ -29,6 +30,8 @@ export const slugField = (from = "title"): Field => ({
       },
     ],
   },
-  validate: (v: unknown) =>
-    typeof v === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v) ? true : "Use lowercase letters, numbers and dashes only.",
+  validate: (v: unknown) => {
+    if (typeof v !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v)) return "Use lowercase letters, numbers and dashes only.";
+    return reserved.has(v) ? `"${v}" is reserved and can't be used here.` : true;
+  },
 });

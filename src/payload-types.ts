@@ -65,7 +65,32 @@ export interface Config {
   auth: {
     users: UserAuthOperations;
   };
-  blocks: {};
+  blocks: {
+    flightHero: FlightHeroBlock;
+    howItWorks: HowItWorksBlock;
+    coverageMap: CoverageMapBlock;
+    pageHero: PageHeroBlock;
+    marquee: MarqueeBlock;
+    stats: StatsBlock;
+    fullService: FullServiceBlock;
+    steps: StepsBlock;
+    servicesTabs: ServicesTabsBlock;
+    servicesGrid: ServicesGridBlock;
+    servicesCompare: ServicesCompareBlock;
+    pricing: PricingBlock;
+    pricingCompare: PricingCompareBlock;
+    testimonials: TestimonialsBlock;
+    faq: FaqBlock;
+    blogPreview: BlogPreviewBlock;
+    ctaBanner: CtaBannerBlock;
+    contact: ContactBlock;
+    team: TeamBlock;
+    timeline: TimelineBlock;
+    values: ValuesBlock;
+    requirements: RequirementsBlock;
+    richText: RichTextBlock;
+    imageText: ImageTextBlock;
+  };
   collections: {
     leads: Lead;
     subscribers: Subscriber;
@@ -76,6 +101,7 @@ export interface Config {
     team: Team;
     posts: Post;
     categories: Category;
+    pages: Page;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -95,6 +121,7 @@ export interface Config {
     team: TeamSelect<false> | TeamSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -109,10 +136,14 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'site-settings': SiteSetting;
+    'site-content': SiteContent;
+    'home-page': HomePage;
     notifications: Notification;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'site-content': SiteContentSelect<false> | SiteContentSelect<true>;
+    'home-page': HomePageSelect<false> | HomePageSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
   };
   locale: null;
@@ -148,6 +179,861 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FlightHeroBlock".
+ */
+export interface FlightHeroBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Each beat is a screenful of the scroll-scrubbed hero. The first beat is the intro screen (brand name, live-dot pill, 2 buttons); the rest are supporting screens.
+   */
+  beats?:
+    | {
+        /**
+         * Short word shown on the scroll progress rail, e.g. Apex, 24/7.
+         */
+        railLabel: string;
+        /**
+         * First beat: text next to the live dot. Others: small amber kicker above the heading.
+         */
+        eyebrow?: string | null;
+        heading: string;
+        /**
+         * Words shown in the orange gradient right after the heading.
+         */
+        highlight?: string | null;
+        /**
+         * Optional plain words after the highlighted ones.
+         */
+        tail?: string | null;
+        subheading?: string | null;
+        /**
+         * {{subTagline}}, {{name}} etc. are replaced with your Site settings values.
+         */
+        body?: string | null;
+        chips?:
+          | {
+              icon?:
+                | (
+                    | 'phone-call'
+                    | 'search'
+                    | 'handshake'
+                    | 'truck'
+                    | 'file-check'
+                    | 'map-pinned'
+                    | 'dollar-sign'
+                    | 'clipboard-check'
+                    | 'clock-3'
+                    | 'route'
+                    | 'network'
+                    | 'shield-check'
+                  )
+                | null;
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        ctas?:
+          | {
+              label: string;
+              href: string;
+              variant?: ('primary' | 'ghost') | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'flightHero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HowItWorksBlock".
+ */
+export interface HowItWorksBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  intro?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'howItWorks';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CoverageMapBlock".
+ */
+export interface CoverageMapBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  intro?: string | null;
+  regions?:
+    | {
+        name: string;
+        states?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'coverageMap';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PageHeroBlock".
+ */
+export interface PageHeroBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  eyebrow: string;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  /**
+   * {{city}}, {{founded}} etc. are replaced with your Site settings values.
+   */
+  subtitle?: string | null;
+  /**
+   * Leave empty for a plain dark background.
+   */
+  image?: (number | null) | Media;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  size?: ('default' | 'short' | 'legal') | null;
+  updated?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'pageHero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Describe the image for screen readers and SEO. Required.
+   */
+  alt: string;
+  prefix?: string | null;
+  _objectKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    hero?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MarqueeBlock".
+ */
+export interface MarqueeBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  reverse?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'marquee';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StatsBlock".
+ */
+export interface StatsBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  intro?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'stats';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FullServiceBlock".
+ */
+export interface FullServiceBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  body?: string | null;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  /**
+   * Split style only — background photo.
+   */
+  image?: (number | null) | Media;
+  style?: ('split' | 'cards' | 'compact') | null;
+  showStats?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'fullService';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StepsBlock".
+ */
+export interface StepsBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  intro?: string | null;
+  style?: ('list' | 'grid') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'steps';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesTabsBlock".
+ */
+export interface ServicesTabsBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'servicesTabs';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesGridBlock".
+ */
+export interface ServicesGridBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'servicesGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesCompareBlock".
+ */
+export interface ServicesCompareBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  emitCollectionLd?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'servicesCompare';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PricingBlock".
+ */
+export interface PricingBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  /**
+   * Leave empty to show just the plan cards with no heading.
+   */
+  heading?: string | null;
+  highlight?: string | null;
+  intro?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'pricing';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PricingCompareBlock".
+ */
+export interface PricingCompareBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'pricingCompare';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock".
+ */
+export interface TestimonialsBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'testimonials';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqBlock".
+ */
+export interface FaqBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading?: string | null;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  source?: ('group' | 'picked') | null;
+  group?: ('general' | 'pricing' | 'service') | null;
+  items?: (number | Faq)[] | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'faq';
+}
+/**
+ * Shared FAQs. Service-specific FAQs live on each service instead.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  /**
+   * In the service-page group, {service} is replaced with the service name (e.g. dry van).
+   */
+  question: string;
+  /**
+   * Plain text. It is also published to Google as FAQ structured data.
+   */
+  answer: string;
+  group: 'general' | 'pricing' | 'service';
+  /**
+   * Lower numbers show first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BlogPreviewBlock".
+ */
+export interface BlogPreviewBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'blogPreview';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBannerBlock".
+ */
+export interface CtaBannerBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  body?: string | null;
+  truck?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'ctaBanner';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactBlock".
+ */
+export interface ContactBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading?: string | null;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  intro?: string | null;
+  formHeading?: string | null;
+  /**
+   * Section style only, e.g. "Dispatch desk online now".
+   */
+  statusLine?: string | null;
+  /**
+   * Section style only, e.g. "Avg. reply < 1 hr".
+   */
+  replyNote?: string | null;
+  style?: ('section' | 'page') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'contact';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TeamBlock".
+ */
+export interface TeamBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'team';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TimelineBlock".
+ */
+export interface TimelineBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  paragraphs?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  milestones?:
+    | {
+        year: string;
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'timeline';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ValuesBlock".
+ */
+export interface ValuesBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  /**
+   * Background photo.
+   */
+  image?: (number | null) | Media;
+  cards?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'values';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RequirementsBlock".
+ */
+export interface RequirementsBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  intro?: string | null;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'requirements';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock".
+ */
+export interface RichTextBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  width?: ('820' | '1100') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'richText';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageTextBlock".
+ */
+export interface ImageTextBlock {
+  /**
+   * Untick to hide this section without deleting it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small pill above the heading, e.g. "What we do".
+   */
+  label?: string | null;
+  numbering?: ('counter' | 'dash' | 'none') | null;
+  heading: string;
+  /**
+   * Words shown in the orange gradient right after the heading.
+   */
+  highlight?: string | null;
+  /**
+   * Optional plain words after the highlighted ones.
+   */
+  tail?: string | null;
+  body?: string | null;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  image: number | Media;
+  imageSide?: ('left' | 'right') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'imageText';
 }
 /**
  * Every contact-form submission lands here. Work it through the pipeline with Status, Follow-up date and Notes.
@@ -318,64 +1204,6 @@ export interface Service {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  /**
-   * Describe the image for screen readers and SEO. Required.
-   */
-  alt: string;
-  prefix?: string | null;
-  _objectKey?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-  sizes?: {
-    thumbnail?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    card?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    hero?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    og?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pricing-tiers".
  */
 export interface PricingTier {
@@ -423,30 +1251,6 @@ export interface Testimonial {
    * Featured reviews show first.
    */
   featured?: boolean | null;
-  /**
-   * Lower numbers show first.
-   */
-  order?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Shared FAQs. Service-specific FAQs live on each service instead.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "faqs".
- */
-export interface Faq {
-  id: number;
-  /**
-   * In the service-page group, {service} is replaced with the service name (e.g. dry van).
-   */
-  question: string;
-  /**
-   * Plain text. It is also published to Google as FAQ structured data.
-   */
-  answer: string;
-  group: 'general' | 'pricing' | 'service';
   /**
    * Lower numbers show first.
    */
@@ -541,6 +1345,65 @@ export interface Category {
   order?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Build any page from reorderable sections. About, Carriers, Pricing, Contact, Services, Privacy and Terms are all built this way.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  /**
+   * Short name used in breadcrumbs and the sitemap, e.g. "About". The browser/Google title is set separately under SEO.
+   */
+  title: string;
+  /**
+   * The URL part, e.g. dry-van-vs-flatbed. Leave empty to generate it from the title.
+   */
+  slug: string;
+  layout: (
+    | PageHeroBlock
+    | MarqueeBlock
+    | StatsBlock
+    | FullServiceBlock
+    | StepsBlock
+    | ServicesTabsBlock
+    | ServicesGridBlock
+    | ServicesCompareBlock
+    | PricingBlock
+    | PricingCompareBlock
+    | TestimonialsBlock
+    | FaqBlock
+    | BlogPreviewBlock
+    | CtaBannerBlock
+    | ContactBlock
+    | TeamBlock
+    | TimelineBlock
+    | ValuesBlock
+    | RequirementsBlock
+    | RichTextBlock
+    | ImageTextBlock
+  )[];
+  /**
+   * Defaults are derived from the page content when left empty.
+   */
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+    /**
+     * Rarely needed — leave empty unless this page duplicates another URL.
+     */
+    canonical?: string | null;
+    noIndex?: boolean | null;
+  };
+  showInSitemap?: boolean | null;
+  changeFrequency?: ('weekly' | 'monthly' | 'yearly') | null;
+  sitemapPriority?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -693,6 +1556,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'media';
@@ -936,6 +1803,412 @@ export interface CategoriesSelect<T extends boolean = true> {
   order?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  layout?:
+    | T
+    | {
+        pageHero?: T | PageHeroBlockSelect<T>;
+        marquee?: T | MarqueeBlockSelect<T>;
+        stats?: T | StatsBlockSelect<T>;
+        fullService?: T | FullServiceBlockSelect<T>;
+        steps?: T | StepsBlockSelect<T>;
+        servicesTabs?: T | ServicesTabsBlockSelect<T>;
+        servicesGrid?: T | ServicesGridBlockSelect<T>;
+        servicesCompare?: T | ServicesCompareBlockSelect<T>;
+        pricing?: T | PricingBlockSelect<T>;
+        pricingCompare?: T | PricingCompareBlockSelect<T>;
+        testimonials?: T | TestimonialsBlockSelect<T>;
+        faq?: T | FaqBlockSelect<T>;
+        blogPreview?: T | BlogPreviewBlockSelect<T>;
+        ctaBanner?: T | CtaBannerBlockSelect<T>;
+        contact?: T | ContactBlockSelect<T>;
+        team?: T | TeamBlockSelect<T>;
+        timeline?: T | TimelineBlockSelect<T>;
+        values?: T | ValuesBlockSelect<T>;
+        requirements?: T | RequirementsBlockSelect<T>;
+        richText?: T | RichTextBlockSelect<T>;
+        imageText?: T | ImageTextBlockSelect<T>;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        canonical?: T;
+        noIndex?: T;
+      };
+  showInSitemap?: T;
+  changeFrequency?: T;
+  sitemapPriority?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PageHeroBlock_select".
+ */
+export interface PageHeroBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  eyebrow?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  subtitle?: T;
+  image?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  size?: T;
+  updated?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MarqueeBlock_select".
+ */
+export interface MarqueeBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  reverse?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StatsBlock_select".
+ */
+export interface StatsBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  intro?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FullServiceBlock_select".
+ */
+export interface FullServiceBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  body?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  image?: T;
+  style?: T;
+  showStats?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StepsBlock_select".
+ */
+export interface StepsBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  intro?: T;
+  style?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesTabsBlock_select".
+ */
+export interface ServicesTabsBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesGridBlock_select".
+ */
+export interface ServicesGridBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesCompareBlock_select".
+ */
+export interface ServicesCompareBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  emitCollectionLd?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PricingBlock_select".
+ */
+export interface PricingBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  intro?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PricingCompareBlock_select".
+ */
+export interface PricingCompareBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock_select".
+ */
+export interface TestimonialsBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqBlock_select".
+ */
+export interface FaqBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  source?: T;
+  group?: T;
+  items?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BlogPreviewBlock_select".
+ */
+export interface BlogPreviewBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  limit?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBannerBlock_select".
+ */
+export interface CtaBannerBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  body?: T;
+  truck?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactBlock_select".
+ */
+export interface ContactBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  intro?: T;
+  formHeading?: T;
+  statusLine?: T;
+  replyNote?: T;
+  style?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TeamBlock_select".
+ */
+export interface TeamBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TimelineBlock_select".
+ */
+export interface TimelineBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  paragraphs?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  milestones?:
+    | T
+    | {
+        year?: T;
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ValuesBlock_select".
+ */
+export interface ValuesBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  image?: T;
+  cards?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RequirementsBlock_select".
+ */
+export interface RequirementsBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  intro?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock_select".
+ */
+export interface RichTextBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  content?: T;
+  width?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageTextBlock_select".
+ */
+export interface ImageTextBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  body?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  image?: T;
+  imageSide?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1208,6 +2481,142 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * Lists reused across several pages — steps, stats, the full-service items, marquee items, carrier requirements and the pricing comparison table.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-content".
+ */
+export interface SiteContent {
+  id: number;
+  marqueeItems?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  stats?:
+    | {
+        value: number;
+        decimals?: number | null;
+        /**
+         * e.g. +, " States", ★, /7
+         */
+        suffix?: string | null;
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  fullService?:
+    | {
+        title: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  steps?:
+    | {
+        title: string;
+        icon?:
+          | (
+              | 'phone-call'
+              | 'search'
+              | 'handshake'
+              | 'truck'
+              | 'file-check'
+              | 'map-pinned'
+              | 'dollar-sign'
+              | 'clipboard-check'
+              | 'clock-3'
+              | 'route'
+              | 'network'
+              | 'shield-check'
+            )
+          | null;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  carrierRequirements?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Each row is a feature; each cell says whether a plan includes it (or a short replacement label, e.g. "Up to 2").
+   */
+  pricingComparison?:
+    | {
+        feature: string;
+        cells?:
+          | {
+              tier: number | PricingTier;
+              included?: boolean | null;
+              /**
+               * Optional — replaces the check/dash.
+               */
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The sections that make up the home page, in order. Drag to reorder, untick to hide, or add a new section.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-page".
+ */
+export interface HomePage {
+  id: number;
+  layout: (
+    | FlightHeroBlock
+    | HowItWorksBlock
+    | CoverageMapBlock
+    | PageHeroBlock
+    | MarqueeBlock
+    | StatsBlock
+    | FullServiceBlock
+    | StepsBlock
+    | ServicesTabsBlock
+    | ServicesGridBlock
+    | ServicesCompareBlock
+    | PricingBlock
+    | PricingCompareBlock
+    | TestimonialsBlock
+    | FaqBlock
+    | BlogPreviewBlock
+    | CtaBannerBlock
+    | ContactBlock
+    | TeamBlock
+    | TimelineBlock
+    | ValuesBlock
+    | RequirementsBlock
+    | RichTextBlock
+    | ImageTextBlock
+  )[];
+  /**
+   * Defaults are derived from the page content when left empty.
+   */
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+    /**
+     * Rarely needed — leave empty unless this page duplicates another URL.
+     */
+    canonical?: string | null;
+    noIndex?: boolean | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Who gets emailed about new leads, and the automatic reply carriers receive.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1307,6 +2716,190 @@ export interface SiteSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-content_select".
+ */
+export interface SiteContentSelect<T extends boolean = true> {
+  marqueeItems?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  stats?:
+    | T
+    | {
+        value?: T;
+        decimals?: T;
+        suffix?: T;
+        label?: T;
+        id?: T;
+      };
+  fullService?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  steps?:
+    | T
+    | {
+        title?: T;
+        icon?: T;
+        body?: T;
+        id?: T;
+      };
+  carrierRequirements?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  pricingComparison?:
+    | T
+    | {
+        feature?: T;
+        cells?:
+          | T
+          | {
+              tier?: T;
+              included?: T;
+              text?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-page_select".
+ */
+export interface HomePageSelect<T extends boolean = true> {
+  layout?:
+    | T
+    | {
+        flightHero?: T | FlightHeroBlockSelect<T>;
+        howItWorks?: T | HowItWorksBlockSelect<T>;
+        coverageMap?: T | CoverageMapBlockSelect<T>;
+        pageHero?: T | PageHeroBlockSelect<T>;
+        marquee?: T | MarqueeBlockSelect<T>;
+        stats?: T | StatsBlockSelect<T>;
+        fullService?: T | FullServiceBlockSelect<T>;
+        steps?: T | StepsBlockSelect<T>;
+        servicesTabs?: T | ServicesTabsBlockSelect<T>;
+        servicesGrid?: T | ServicesGridBlockSelect<T>;
+        servicesCompare?: T | ServicesCompareBlockSelect<T>;
+        pricing?: T | PricingBlockSelect<T>;
+        pricingCompare?: T | PricingCompareBlockSelect<T>;
+        testimonials?: T | TestimonialsBlockSelect<T>;
+        faq?: T | FaqBlockSelect<T>;
+        blogPreview?: T | BlogPreviewBlockSelect<T>;
+        ctaBanner?: T | CtaBannerBlockSelect<T>;
+        contact?: T | ContactBlockSelect<T>;
+        team?: T | TeamBlockSelect<T>;
+        timeline?: T | TimelineBlockSelect<T>;
+        values?: T | ValuesBlockSelect<T>;
+        requirements?: T | RequirementsBlockSelect<T>;
+        richText?: T | RichTextBlockSelect<T>;
+        imageText?: T | ImageTextBlockSelect<T>;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        canonical?: T;
+        noIndex?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FlightHeroBlock_select".
+ */
+export interface FlightHeroBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  beats?:
+    | T
+    | {
+        railLabel?: T;
+        eyebrow?: T;
+        heading?: T;
+        highlight?: T;
+        tail?: T;
+        subheading?: T;
+        body?: T;
+        chips?:
+          | T
+          | {
+              icon?: T;
+              text?: T;
+              id?: T;
+            };
+        ctas?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              variant?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HowItWorksBlock_select".
+ */
+export interface HowItWorksBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  intro?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CoverageMapBlock_select".
+ */
+export interface CoverageMapBlockSelect<T extends boolean = true> {
+  enabled?: T;
+  label?: T;
+  numbering?: T;
+  heading?: T;
+  highlight?: T;
+  tail?: T;
+  intro?: T;
+  regions?:
+    | T
+    | {
+        name?: T;
+        states?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notifications_select".
  */
 export interface NotificationsSelect<T extends boolean = true> {
@@ -1345,11 +2938,16 @@ export interface TaskSchedulePublish {
   input: {
     type?: ('publish' | 'unpublish') | null;
     locale?: string | null;
-    doc?: {
-      relationTo: 'posts';
-      value: number | Post;
-    } | null;
-    global?: string | null;
+    doc?:
+      | ({
+          relationTo: 'posts';
+          value: number | Post;
+        } | null)
+      | ({
+          relationTo: 'pages';
+          value: number | Page;
+        } | null);
+    global?: 'home-page' | null;
     user?: {
       relationTo: 'users';
       value: number | User;

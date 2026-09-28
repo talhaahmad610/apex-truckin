@@ -14,6 +14,8 @@ export async function pageMetadata({
   type = "website",
   publishedTime,
   authors,
+  canonical,
+  noIndex,
 }: {
   title: string;
   description: string;
@@ -22,12 +24,16 @@ export async function pageMetadata({
   type?: "website" | "article";
   publishedTime?: string;
   authors?: string[];
+  /** Overrides the canonical URL (rarely needed — defaults to `path`). */
+  canonical?: string;
+  noIndex?: boolean;
 }): Promise<Metadata> {
   const site = await getSiteSettings();
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: canonical || path },
+    ...(noIndex ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       type,
       url: path,

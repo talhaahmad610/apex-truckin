@@ -40,90 +40,6 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Contact", href: "/contact" },
 ];
 
-export const MARQUEE_ITEMS = [
-  "Dry Van",
-  "Flatbed",
-  "Reefer",
-  "Hotshot",
-  "Step Deck",
-  "Power Only",
-  "Box Truck",
-  "24/7 Dispatch",
-  "Nationwide Coverage",
-];
-
-export const STATS = [
-  { value: 500, suffix: "+", label: "Loads Dispatched Monthly", decimals: 0 },
-  { value: 48, suffix: " States", label: "Lower-48 Coverage", decimals: 0 },
-  { value: 4.9, suffix: "★", label: "Carrier Rating", decimals: 1 },
-  { value: 24, suffix: "/7", label: "Dispatch Support", decimals: 0 },
-];
-
-/** The 6 things "full-service dispatch" means — used on the home page, carriers page and about page. */
-export const FULL_SERVICE = [
-  {
-    n: "01",
-    title: "Paperwork handled",
-    body: "Rate confirmations, BOLs, PODs and broker setup packets handled on every load, plus invoicing and factoring submissions on Professional and Enterprise plans.",
-  },
-  {
-    n: "02",
-    title: "Broker negotiation",
-    body: "We negotiate rates, detention and load terms with brokers on your behalf, and you approve every load before it's booked.",
-  },
-  {
-    n: "03",
-    title: "Problems solved",
-    body: "Detention, layovers, TONU, cancellations and load issues — we deal with the broker so you keep driving.",
-  },
-  {
-    n: "04",
-    title: "Advance booking",
-    body: "We plan and book your upcoming loads ahead whenever possible, so your truck isn't waiting on the board.",
-  },
-  {
-    n: "05",
-    title: "Backhaul planning",
-    body: "We line up your next load before you deliver, to cut deadhead.",
-  },
-  {
-    n: "06",
-    title: "Smart load planning",
-    body: "Local, regional and OTR freight matched to your truck, equipment, home time and preferred lanes.",
-  },
-];
-
-export const STEPS = [
-  {
-    n: "01",
-    title: "Connect",
-    body: "Tell us about your truck, equipment, home time and preferred lanes. Onboarding takes about 20 minutes — MC, W-9, COI and you're live.",
-  },
-  {
-    n: "02",
-    title: "Find",
-    body: "We search DAT, Truckstop, and our private broker network for the highest-paying freight that fits your lanes and schedule.",
-  },
-  {
-    n: "03",
-    title: "Negotiate",
-    body: "Our dispatchers work brokers hard for top rates, detention, and TONU terms — then send you the rate con to approve before we book.",
-  },
-  {
-    n: "04",
-    title: "Move",
-    body: "You haul. We handle check calls, paperwork, tracking updates, and invoicing or factoring submissions so you get paid fast.",
-  },
-];
-
-/** Local & regional broker coverage, shown on the home page coverage map. */
-export const BROKER_REGIONS = [
-  { name: "West Coast", states: ["California", "Oregon", "Washington", "Nevada", "Arizona"] },
-  { name: "Texas & South", states: ["Texas", "Florida", "Louisiana", "Oklahoma", "Arkansas"] },
-  { name: "Midwest & Northeast", states: ["Ohio", "Illinois", "Indiana", "Michigan", "Pennsylvania", "Missouri", "Wisconsin"] },
-  { name: "Southeast", states: ["Georgia", "North Carolina", "South Carolina", "Tennessee", "Virginia", "Alabama"] },
-];
-
 /** Seed source for the CMS "services" collection (see scripts/seed-cms.ts). */
 export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescription">[] = [
   {
@@ -338,7 +254,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
   },
 ];
 
-export const PRICING: PricingTier[] = [
+/** Seed source for the CMS "pricing-tiers" collection — no `id`, the database assigns one. */
+export const PRICING: Omit<PricingTier, "id">[] = [
   {
     name: "Starter",
     price: "5%",
@@ -372,21 +289,6 @@ export const PRICING: PricingTier[] = [
   },
 ];
 
-export const PRICING_COMPARISON: { feature: string; starter: boolean | string; pro: boolean | string; ent: boolean | string }[] = [
-  { feature: "Load sourcing & negotiation", starter: true, pro: true, ent: true },
-  { feature: "Rate confirmation handling", starter: true, pro: true, ent: true },
-  { feature: "24/7 dispatch line", starter: true, pro: true, ent: true },
-  { feature: "Broker setup packets", starter: true, pro: true, ent: true },
-  { feature: "Trucks included", starter: "Up to 2", pro: "Unlimited", ent: "Unlimited" },
-  { feature: "Priority load access", starter: false, pro: true, ent: true },
-  { feature: "Weekly performance reports", starter: false, pro: true, ent: true },
-  { feature: "Invoicing & factoring submissions", starter: false, pro: true, ent: true },
-  { feature: "Dedicated dispatcher", starter: false, pro: false, ent: true },
-  { feature: "Custom lane strategy", starter: false, pro: false, ent: true },
-  { feature: "API access & TMS integration", starter: false, pro: false, ent: true },
-  { feature: "White-label dispatch", starter: false, pro: false, ent: true },
-];
-
 export const PRICING_FAQS: FAQ[] = [
   { q: "Are there contracts or setup fees?", a: "No. Starter and Professional are month-to-month with no setup fees. Cancel anytime with 7 days' notice." },
   { q: "Is the 5% taken from the gross rate?", a: "Yes, 5% of the linehaul rate on each load we dispatch. Fuel surcharge and accessorials we negotiate are included in the gross." },
@@ -401,24 +303,6 @@ export const GENERAL_FAQS: FAQ[] = [
   { q: "Do I have to take every load you find?", a: "No. You approve every load. We never force dispatch." },
   { q: "Which load boards do you use?", a: "DAT, Truckstop, 123Loadboard and our private broker network of 1,200+ partners." },
   { q: "What states do you cover?", a: "All lower 48 states, with cross-border coordination to Canada and Mexico handled case by case." },
-];
-
-export const EQUIPMENT_TYPES = SERVICES.map((s) => s.name).concat(["Other"]);
-
-export const CARRIER_REQUIREMENTS = [
-  "Active MC & USDOT number (new authorities welcome)",
-  "Certificate of Insurance: $1M auto liability, $100K cargo",
-  "Signed W-9",
-  "Notice of Assignment if you use factoring",
-  "ELD-compliant truck",
-  "Safety rating not 'Unsatisfactory'",
-];
-
-export const VALUES = [
-  { title: "Driver first", body: "Every decision starts with what's best for the person behind the wheel." },
-  { title: "Radical transparency", body: "You see every rate, every broker, every fee. Always." },
-  { title: "Relentless hustle", body: "We work the phones until we find freight worth hauling." },
-  { title: "Earned trust", body: "We grow when you grow. Our retention is our scoreboard." },
 ];
 
 export const TEAM = [

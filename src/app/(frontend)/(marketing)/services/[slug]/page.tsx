@@ -3,8 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
-import { STEPS } from "@/lib/constants";
-import { getFaqs, getPricingTiers, getServiceBySlug, getServices, getSiteSettings } from "@/lib/cms";
+import { getFaqs, getPricingTiers, getServiceBySlug, getServices, getSiteContent, getSiteSettings } from "@/lib/cms";
 import { faqLd, pageMetadata, serviceLd } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { PricingSection } from "@/components/sections/PricingSection";
@@ -15,6 +14,7 @@ import { FAQAccordion } from "@/components/ui/FAQAccordion";
 import { Button } from "@/components/ui/Button";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { TiltCard } from "@/components/3d/TiltCard";
+import { StepsSection } from "@/components/blocks/StepsSection";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServicePage({ params }: Props) {
   const { slug } = await params;
-  const [SERVICES, sharedFaqs, site, tiers] = await Promise.all([getServices(), getFaqs("service"), getSiteSettings(), getPricingTiers()]);
+  const [SERVICES, sharedFaqs, site, tiers, content] = await Promise.all([getServices(), getFaqs("service"), getSiteSettings(), getPricingTiers(), getSiteContent()]);
   const idx = SERVICES.findIndex((x) => x.slug === slug);
   const s = SERVICES[idx];
   if (!s) notFound();
@@ -151,25 +151,24 @@ export default async function ServicePage({ params }: Props) {
       </RevealWrapper>
 
       {/* Process */}
-      <RevealWrapper as="section" className="py-24 md:py-36">
-        <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
-          <SectionLabel n="03" label="Process" />
-          <h2 data-reveal="up" className="mb-12 mt-6 font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
-            From call to <span className="text-gradient">first load</span>
-          </h2>
-          <ol data-stagger-group className="grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 md:grid-cols-4">
-            {STEPS.map((st) => (
-              <li key={st.n} data-stagger className="bg-[#0d0e14] p-8">
-                <span className="font-display text-sm font-semibold tracking-[0.3em] text-amber">STEP {st.n}</span>
-                <h3 className="mt-3 font-display text-3xl font-bold uppercase">{st.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted">{st.body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </RevealWrapper>
+      <StepsSection
+        n="03"
+        label="Process"
+        heading="From call to"
+        highlight="first load"
+        style="grid"
+        steps={content.steps}
+        site={site}
+      />
 
-      <PricingSection />
+      <PricingSection
+        n="04"
+        label="Pricing"
+        heading="Straight rates."
+        highlight="No surprises."
+        intro="No contracts, no setup fees, no forced dispatch. Pick the plan that fits your fleet today — switch anytime."
+        site={site}
+      />
 
       {/* FAQ */}
       <RevealWrapper as="section" className="py-24 md:py-32">

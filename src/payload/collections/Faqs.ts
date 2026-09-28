@@ -39,7 +39,9 @@ export const Faqs: CollectionConfig = {
     orderField,
   ],
   hooks: {
-    afterChange: [({ req }) => revalidate(req, { tags: ["faqs"], paths: ["/pricing", "/carriers", "/contact", "/services"] })],
-    afterDelete: [({ req }) => revalidate(req, { tags: ["faqs"], paths: ["/pricing", "/carriers", "/contact"] })],
+    // `everything: true` because any builder page can now embed a "faq" block by group — a
+    // plain path list can't keep up with where a group is used.
+    afterChange: [({ req }) => revalidate(req, { tags: ["faqs"], everything: true })],
+    afterDelete: [({ req }) => revalidate(req, { tags: ["faqs"], everything: true })],
   },
 };

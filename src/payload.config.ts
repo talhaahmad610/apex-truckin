@@ -19,7 +19,12 @@ import { Testimonials } from "./payload/collections/Testimonials";
 import { Team } from "./payload/collections/Team";
 import { Faqs } from "./payload/collections/Faqs";
 import { PricingTiers } from "./payload/collections/PricingTiers";
+import { Pages } from "./payload/collections/Pages";
 import { SiteSettings } from "./payload/globals/SiteSettings";
+import { SiteContent } from "./payload/globals/SiteContent";
+import { HomePage } from "./payload/globals/HomePage";
+import { HOME_ONLY_BLOCKS } from "./payload/blocks/home";
+import { REUSABLE_BLOCKS } from "./payload/blocks/shared";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -51,8 +56,11 @@ export default buildConfig({
   // Only accept cookie-authenticated requests originating from the site itself.
   csrf: [siteURL],
   cors: [siteURL],
-  collections: [Leads, Subscribers, Services, PricingTiers, Testimonials, Faqs, Team, Posts, Categories, Media, Users],
-  globals: [SiteSettings, Notifications],
+  collections: [Leads, Subscribers, Services, PricingTiers, Testimonials, Faqs, Team, Posts, Categories, Pages, Media, Users],
+  globals: [SiteSettings, SiteContent, HomePage, Notifications],
+  // Every block referenced anywhere via `blockReferences` (home-page + pages layouts) must be
+  // registered here — that's what blockReferences resolves against.
+  blocks: [...HOME_ONLY_BLOCKS, ...REUSABLE_BLOCKS],
   editor: lexicalEditor(),
   // Runs queued jobs (scheduled publishing; hero video processing) inside the long-running Node
   // server. Needs a persistent process — fine on the planned VPS, not on serverless.

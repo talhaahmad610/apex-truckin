@@ -4,7 +4,7 @@ import { slugField } from "../fields/slug";
 import { cardList, faqList, orderField, textList } from "../fields/lists";
 import { revalidate } from "../hooks/revalidate";
 
-const paths = (slug?: string | null) => ["/", "/services", "/contact", "/sitemap.xml", "/llms.txt", ...(slug ? [`/services/${slug}`] : [])];
+const paths = () => ["/sitemap.xml", "/llms.txt"];
 
 export const Services: CollectionConfig = {
   slug: "services",
@@ -117,13 +117,9 @@ export const Services: CollectionConfig = {
     orderField,
   ],
   hooks: {
-    afterChange: [
-      ({ doc, previousDoc, req }) =>
-        revalidate(req, {
-          tags: ["services"],
-          paths: [...paths(doc.slug), ...(previousDoc?.slug && previousDoc.slug !== doc.slug ? [`/services/${previousDoc.slug}`] : [])],
-        }),
-    ],
-    afterDelete: [({ doc, req }) => revalidate(req, { tags: ["services"], paths: paths(doc.slug) })],
+    // `everything: true` because "servicesTabs"/"servicesGrid"/"servicesCompare" blocks can now
+    // be added to any builder page (not just the fixed /services routes the old path list covered).
+    afterChange: [({ req }) => revalidate(req, { tags: ["services"], paths: paths(), everything: true })],
+    afterDelete: [({ req }) => revalidate(req, { tags: ["services"], paths: paths(), everything: true })],
   },
 };

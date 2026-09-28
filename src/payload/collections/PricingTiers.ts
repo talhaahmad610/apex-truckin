@@ -25,7 +25,9 @@ export const PricingTiers: CollectionConfig = {
     orderField,
   ],
   hooks: {
-    afterChange: [({ req }) => revalidate(req, { tags: ["pricing"], paths: ["/", "/pricing", "/llms.txt"] })],
-    afterDelete: [({ req }) => revalidate(req, { tags: ["pricing"], paths: ["/", "/pricing", "/llms.txt"] })],
+    // `everything: true` because "pricing"/"pricingCompare" blocks can now be added to any
+    // builder page, and site-content's comparison rows reference tiers by relationship.
+    afterChange: [({ req }) => revalidate(req, { tags: ["pricing"], paths: ["/llms.txt"], everything: true })],
+    afterDelete: [({ req }) => revalidate(req, { tags: ["pricing"], paths: ["/llms.txt"], everything: true })],
   },
 };

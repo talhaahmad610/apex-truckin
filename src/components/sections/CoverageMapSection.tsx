@@ -1,11 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import { BROKER_REGIONS } from "@/lib/constants";
+import type { SiteInfo } from "@/types";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { CITIES, ROUTES, SIDE_ROUTES, USA_PATH, USA_VIEWBOX, cityXY, routePath, type CityKey } from "@/lib/usa-map";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
+import { GradientHeading } from "@/components/blocks/GradientHeading";
+import { fillTokens } from "@/lib/tokens";
+import { joinAnd } from "@/lib/utils";
 
 // One `d` string per candidate route, computed once. Index 0 renders on the server (and again on
 // the client's first paint, so hydration matches); a random index is then swapped in imperatively.
@@ -13,7 +16,23 @@ const routeDs = ROUTES.map((r) => routePath(r));
 const sideDs = SIDE_ROUTES.map((r) => routePath(r, 0.08));
 const cityKeys = Object.keys(CITIES) as CityKey[];
 
-export function CoverageMapSection({ siteName }: { siteName: string }) {
+export function CoverageMapSection({
+  n = "—",
+  label = "Local broker network",
+  heading = "Local brokers.",
+  highlight = "Direct shippers.",
+  intro,
+  regions,
+  site,
+}: {
+  n?: string;
+  label?: string;
+  heading?: string;
+  highlight?: string | null;
+  intro?: string | null;
+  regions: { name: string; states: string[] }[];
+  site: SiteInfo;
+}) {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -98,16 +117,20 @@ export function CoverageMapSection({ siteName }: { siteName: string }) {
     <RevealWrapper as="section" id="coverage" className="relative overflow-hidden py-24 md:py-40">
       <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
         <div className="mx-auto mb-10 max-w-3xl text-center md:mb-4">
-          <SectionLabel n="—" label="Local broker network" />
-          <h2 data-reveal="up" className="mt-6 font-display text-[clamp(3rem,8vw,7.5rem)] font-bold uppercase leading-[0.88]">
-            Local brokers. <span className="text-gradient">Direct shippers.</span>
-          </h2>
-          <p data-reveal="up" className="mx-auto mt-5 max-w-xl text-muted">
-            Apex Truckin connects owner-operators and fleets directly with local and regional freight brokers and
-            shippers in 23 key states — not just the loads posted on DAT and Truckstop. Beyond these states, our
-            dispatchers still find and book freight nationwide across all 48 contiguous states through DAT, Truckstop
-            and our wider network of 1,200+ broker partners.
-          </p>
+          <SectionLabel n={n} label={label} />
+          <GradientHeading
+            as="h2"
+            data-reveal="up"
+            className="mt-6 font-display text-[clamp(3rem,8vw,7.5rem)] font-bold uppercase leading-[0.88]"
+            heading={heading}
+            highlight={highlight}
+            site={site}
+          />
+          {intro && (
+            <p data-reveal="up" className="mx-auto mt-5 max-w-xl text-muted">
+              {fillTokens(intro, site)}
+            </p>
+          )}
         </div>
 
         <div ref={root} className="[perspective:1600px]">
@@ -132,8 +155,8 @@ export function CoverageMapSection({ siteName }: { siteName: string }) {
                 role="img"
                 aria-labelledby="map-title map-desc"
               >
-                <title id="map-title">{`${siteName} broker network map`}</title>
-                <desc id="map-desc">A map of the contiguous United States showing an example dispatch lane connecting the West Coast, Texas & South, Midwest & Northeast, and Southeast broker networks.</desc>
+                <title id="map-title">{`${site.name} broker network map`}</title>
+                <desc id="map-desc">{`A map of the contiguous United States showing an example dispatch lane connecting the ${joinAnd(regions.map((r) => r.name))} broker networks.`}</desc>
                 <defs>
                   <linearGradient id="route-grad" x1="0" x2="1">
                     <stop offset="0" stopColor="#f5a623" />
@@ -180,7 +203,7 @@ export function CoverageMapSection({ siteName }: { siteName: string }) {
         </div>
 
         <dl data-stagger-group className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 md:mt-6 md:grid-cols-4">
-          {BROKER_REGIONS.map((r) => (
+          {regions.map((r) => (
             <div key={r.name} data-stagger className="flex flex-col-reverse bg-[#0d0e14] p-6 text-center md:p-8">
               <dt className="mt-2 text-[11px] uppercase tracking-[0.18em] text-muted">{r.states.join(" · ")}</dt>
               <dd className="font-display text-3xl font-bold text-gradient md:text-4xl">{r.name}</dd>

@@ -1,28 +1,56 @@
-import { STATS } from "@/lib/constants";
+import type { SiteContentData, SiteInfo } from "@/types";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { TiltCard } from "@/components/3d/TiltCard";
+import { GradientHeading } from "@/components/blocks/GradientHeading";
+import { fillTokens } from "@/lib/tokens";
 
-export function StatsSection() {
+export function StatsSection({
+  n,
+  label = "By the numbers",
+  heading,
+  highlight,
+  tail,
+  intro,
+  items,
+  site,
+}: {
+  n?: string;
+  label?: string;
+  heading: string;
+  highlight?: string | null;
+  tail?: string | null;
+  intro?: string | null;
+  items: SiteContentData["stats"];
+  site: SiteInfo;
+}) {
   return (
     <RevealWrapper as="section" className="relative overflow-hidden py-24 md:py-36" id="stats">
       <div aria-hidden className="absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-amber/40 to-transparent" />
       <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
         <div className="mb-14 flex flex-col gap-6 md:mb-20 md:flex-row md:items-end md:justify-between">
           <div>
-            <SectionLabel n="01" label="By the numbers" />
-            <h2 data-reveal="up" className="mt-6 max-w-2xl font-display text-[clamp(2.5rem,6vw,5.25rem)] font-bold uppercase leading-[0.92]">
-              Proof on the <span className="text-gradient">odometer.</span>
-            </h2>
+            <SectionLabel n={n} label={label} />
+            <GradientHeading
+              as="h2"
+              data-reveal="up"
+              className="mt-6 max-w-2xl font-display text-[clamp(2.5rem,6vw,5.25rem)] font-bold uppercase leading-[0.92]"
+              heading={heading}
+              highlight={highlight}
+              tail={tail}
+              site={site}
+            />
           </div>
-          <p data-reveal="up" className="max-w-sm text-muted">
-            Real numbers from real carriers — loads booked, states covered and drivers who stay with us.
-          </p>
+          {intro && (
+            <p data-reveal="up" className="max-w-sm text-muted">
+              {fillTokens(intro, site)}
+            </p>
+          )}
         </div>
 
         <ul data-stagger-group className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STATS.map((s, i) => (
+          {items.map((s, i) => (
             <li key={s.label} data-stagger className="h-full">
               <TiltCard className="h-full rounded-[2rem]">
                 <div className="bezel h-full animate-float" style={{ animationDelay: `${i * 0.6}s` }}>

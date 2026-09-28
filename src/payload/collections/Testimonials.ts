@@ -24,7 +24,8 @@ export const Testimonials: CollectionConfig = {
     orderField,
   ],
   hooks: {
-    afterChange: [({ req }) => revalidate(req, { tags: ["testimonials"], paths: ["/"] })],
-    afterDelete: [({ req }) => revalidate(req, { tags: ["testimonials"], paths: ["/"] })],
+    // `everything: true` because a "testimonials" block can now be added to any builder page.
+    afterChange: [({ req }) => revalidate(req, { tags: ["testimonials"], everything: true })],
+    afterDelete: [({ req }) => revalidate(req, { tags: ["testimonials"], everything: true })],
   },
 };
