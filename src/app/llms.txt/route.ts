@@ -29,7 +29,7 @@ Key facts:
 ${STEPS.map((s) => `${s.n}. ${s.title} — ${s.body}`).join("\n")}
 
 ## Services
-${SERVICES.map((s) => `- [${s.name} dispatch](${SITE_URL}/services/${s.slug}): ${s.short} Typical rate ${s.avgRate}.`).join("\n")}
+${SERVICES.map((s) => `- [${s.name} dispatch](${SITE_URL}/services/${s.slug}): ${s.short} Typical freight rate paid to the carrier: ${s.avgRate}. Estimated weekly gross per truck before fuel & dispatch fees: ${s.weeklyGross}.`).join("\n")}
 
 ## Key pages
 - [All services](${SITE_URL}/services): every equipment type dispatched, compared side by side

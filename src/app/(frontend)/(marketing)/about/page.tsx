@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { STATS, VALUES, CARRIER_BENEFITS } from "@/lib/constants";
+import { STATS, VALUES, FULL_SERVICE } from "@/lib/constants";
 import { getSiteSettings, getTeam } from "@/lib/cms";
 import { pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
@@ -159,7 +159,7 @@ export default async function AboutPage() {
               </dl>
             </div>
             <ul data-stagger-group className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
-              {CARRIER_BENEFITS.map((b) => (
+              {FULL_SERVICE.map((b) => (
                 <li key={b.title} data-stagger className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-6">
                   <h3 className="font-display text-2xl font-bold uppercase">{b.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted">{b.body}</p>

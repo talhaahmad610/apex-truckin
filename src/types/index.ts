@@ -56,6 +56,7 @@ export interface Service {
   requirements: string[];
   benefits: { title: string; body: string }[];
   avgRate: string;
+  weeklyGross: string;
   typicalLoads: string[];
   faqs: FAQ[];
   comparison: { cdl: "yes" | "no" | "depends"; tarpPay: boolean; permits: boolean; tempMonitoring: boolean; dropHook: boolean };
@@ -87,6 +88,9 @@ export interface SiteInfo {
   socials: { facebook: string; instagram: string; linkedin: string; x: string };
   nav: NavLink[];
   footer: { headline: string; highlight: string; newsletterLabel: string; bottomLine: string; legalLinks: NavLink[]; image: string | null };
+  /** Rate & earnings qualifiers shown next to any per-mile rate or weekly-gross figure. */
+  rateDisclaimer: string;
+  grossDisclaimer: string;
 }
 
 export interface FAQ {

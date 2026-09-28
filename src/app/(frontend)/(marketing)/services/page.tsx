@@ -24,6 +24,7 @@ export const generateMetadata = () => pageMetadata({
 const CDL_LABEL = { yes: "Yes", no: "No", depends: "Depends" } as const;
 const COMPARE = [
   { key: "Avg. rate", get: (s: Service) => s.avgRate.replace(" / mile", "") },
+  { key: "Potential weekly gross", get: (s: Service) => s.weeklyGross },
   { key: "CDL required", get: (s: Service) => CDL_LABEL[s.comparison.cdl] },
   { key: "Tarp / accessorial pay", get: (s: Service) => s.comparison.tarpPay },
   { key: "Permit coordination", get: (s: Service) => s.comparison.permits },
@@ -159,6 +160,9 @@ export default async function ServicesPage() {
               <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent md:hidden" />
             </div>
           </div>
+          <p className="mx-auto mt-6 max-w-3xl text-center text-xs leading-relaxed text-white/35">
+            {site.rateDisclaimer} {site.grossDisclaimer}
+          </p>
         </div>
       </RevealWrapper>
 

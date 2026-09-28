@@ -151,6 +151,10 @@ async function seedSiteSettings(payload: Payload) {
         { label: "Terms of Service", href: "/terms" },
         { label: "Sitemap", href: "/sitemap.xml" },
       ],
+      rateDisclaimer:
+        "Rates vary by state, lane, equipment, load type, market conditions, deadhead and negotiated rate, and are not guaranteed.",
+      grossDisclaimer:
+        "Weekly gross is an estimate based on about 2,500–3,000 miles per week, before fuel, dispatch fees, insurance and other operating costs. It is not a guarantee of earnings — actual revenue varies by market, lanes, load availability, equipment and negotiated rates.",
     },
   });
   log("site settings");
@@ -177,6 +181,7 @@ async function seedServices(payload: Payload) {
       description: s.description,
       image,
       avgRate: s.avgRate,
+      weeklyGross: s.weeklyGross,
       included: rows(s.included),
       requirements: rows(s.requirements),
       benefits: s.benefits.map((b) => ({ ...b })),
@@ -216,6 +221,10 @@ async function seedFaqs(payload: Payload) {
           a: "Starter is 5% per load dispatched with no monthly fee. Professional is a flat $300 per truck per month. Enterprise fleets get custom pricing.",
         },
         { q: "Do you force dispatch?", a: "Never. Every load is sent to you for approval before it's booked." },
+        {
+          q: "How much can a {service} carrier gross per week?",
+          a: "At typical freight rates of {avgRate}, a {service} carrier dispatched by Apex Truckin can gross an estimated {weeklyGross} per week before fuel, dispatch fees and other operating costs. This is an estimate, not a guarantee — actual revenue depends on the state, lane, load type, market conditions, deadhead and the rates our dispatchers negotiate.",
+        },
       ],
     ],
   ];

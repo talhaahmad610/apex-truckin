@@ -76,7 +76,21 @@ export function routePath(keys: CityKey[], bow = 0.12): string {
   return d;
 }
 
-export const MAIN_ROUTE: CityKey[] = ["la", "phoenix", "dallas", "kc", "chicago", "nyc"];
+/**
+ * Candidate main routes, one chosen at random per page load (CoverageMapSection). Index 0 is the
+ * SSR default — rendered on the server and again on the client's first paint, so there is no
+ * hydration mismatch; the random pick happens after mount via a direct DOM write, the same way
+ * the truck's position is already updated outside of React state.
+ */
+export const ROUTES: CityKey[][] = [
+  ["la", "phoenix", "dallas", "kc", "chicago", "nyc"],
+  ["seattle", "denver", "kc", "chicago", "nyc"],
+  ["la", "phoenix", "dallas", "atlanta", "miami"],
+  ["seattle", "la", "phoenix", "dallas", "atlanta"],
+  ["miami", "atlanta", "chicago", "nyc"],
+  ["dallas", "kc", "chicago", "atlanta", "miami"],
+];
+export const MAIN_ROUTE: CityKey[] = ROUTES[0]!;
 export const SIDE_ROUTES: CityKey[][] = [
   ["seattle", "denver", "kc"],
   ["dallas", "atlanta", "miami"],

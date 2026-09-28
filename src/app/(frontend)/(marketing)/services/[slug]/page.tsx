@@ -44,9 +44,10 @@ export default async function ServicePage({ params }: Props) {
   const s = SERVICES[idx];
   if (!s) notFound();
   const others = SERVICES.filter((x) => x.slug !== s.slug).slice(0, 3);
-  // Service-specific FAQs, then the shared "every service page" FAQs ({service} → this service).
+  // Service-specific FAQs, then the shared "every service page" FAQs ({service}/{avgRate}/{weeklyGross} → this service's values).
   const name = s.name.toLowerCase();
-  const faqs = [...s.faqs, ...sharedFaqs.map((f) => ({ q: f.q.replaceAll("{service}", name), a: f.a.replaceAll("{service}", name) }))];
+  const fill = (t: string) => t.replaceAll("{service}", name).replaceAll("{avgRate}", s.avgRate).replaceAll("{weeklyGross}", s.weeklyGross);
+  const faqs = [...s.faqs, ...sharedFaqs.map((f) => ({ q: fill(f.q), a: fill(f.a) }))];
 
   return (
     <>
@@ -68,7 +69,11 @@ export default async function ServicePage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-4">
           <Button href="/contact" size="lg">Dispatch My {s.name}</Button>
           <span className="rounded-full border border-line bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber">Avg. {s.avgRate}</span>
+          <span className="rounded-full border border-line bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber">Est. {s.weeklyGross} / week</span>
         </div>
+        <p className="mt-4 max-w-lg text-xs leading-relaxed text-white/40">
+          {site.rateDisclaimer} {site.grossDisclaimer}
+        </p>
       </PageHero>
 
       {/* What we do */}

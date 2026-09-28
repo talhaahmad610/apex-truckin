@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
-export function ServicesSection({ services: SERVICES }: { services: Service[] }) {
+export function ServicesSection({ services: SERVICES, disclaimer }: { services: Service[]; disclaimer?: string }) {
   const [active, setActive] = useState(0);
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();
@@ -120,9 +120,14 @@ export function ServicesSection({ services: SERVICES }: { services: Service[] })
                     </motion.div>
                   </AnimatePresence>
                   <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0f1117] via-[#0f1117]/20 to-transparent" />
-                  <span className="absolute left-5 top-5 rounded-full bg-black/55 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-amber ring-1 ring-white/10">
-                    Avg. {s.avgRate}
-                  </span>
+                  <div className="absolute left-5 top-5 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-black/55 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-amber ring-1 ring-white/10">
+                      Avg. {s.avgRate}
+                    </span>
+                    <span className="rounded-full bg-black/55 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-amber ring-1 ring-white/10">
+                      Est. {s.weeklyGross} / week
+                    </span>
+                  </div>
                 </div>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
@@ -151,6 +156,11 @@ export function ServicesSection({ services: SERVICES }: { services: Service[] })
                     </ul>
                   </motion.div>
                 </AnimatePresence>
+                {disclaimer && (
+                  <p className="border-t border-white/5 px-7 pb-6 pt-4 text-xs leading-relaxed text-white/35 md:px-10 md:pb-8">
+                    {disclaimer}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -59,21 +59,37 @@ export const STATS = [
   { value: 24, suffix: "/7", label: "Dispatch Support", decimals: 0 },
 ];
 
-export const PILLARS = [
+/** The 6 things "full-service dispatch" means — used on the home page, carriers page and about page. */
+export const FULL_SERVICE = [
   {
     n: "01",
-    title: "Reliable",
-    body: "Your dispatcher answers at 2 PM or 2 AM. Loads are booked ahead, so your wheels don't sit waiting on a Monday morning board refresh.",
+    title: "Paperwork handled",
+    body: "Rate confirmations, BOLs, PODs and broker setup packets handled on every load, plus invoicing and factoring submissions on Professional and Enterprise plans.",
   },
   {
     n: "02",
-    title: "Professional",
-    body: "Broker packets, rate confirmations, and check calls handled with clean paperwork and a clear paper trail — the way the best brokers want to work.",
+    title: "Broker negotiation",
+    body: "We negotiate rates, detention and load terms with brokers on your behalf, and you approve every load before it's booked.",
   },
   {
     n: "03",
-    title: "Accountable",
-    body: "Weekly lane and RPM reports show exactly what we booked, what we turned down, and why. No hidden fees, no forced dispatch, ever.",
+    title: "Problems solved",
+    body: "Detention, layovers, TONU, cancellations and load issues — we deal with the broker so you keep driving.",
+  },
+  {
+    n: "04",
+    title: "Advance booking",
+    body: "We plan and book your upcoming loads ahead whenever possible, so your truck isn't waiting on the board.",
+  },
+  {
+    n: "05",
+    title: "Backhaul planning",
+    body: "We line up your next load before you deliver, to cut deadhead.",
+  },
+  {
+    n: "06",
+    title: "Smart load planning",
+    body: "Local, regional and OTR freight matched to your truck, equipment, home time and preferred lanes.",
   },
 ];
 
@@ -100,11 +116,12 @@ export const STEPS = [
   },
 ];
 
-export const COVERAGE_STATS = [
-  { value: "48", label: "States covered" },
-  { value: "1,200+", label: "Broker partners" },
-  { value: "$2.85", label: "Avg. RPM booked (dry van, 2025)" },
-  { value: "< 4 hr", label: "Avg. time to book" },
+/** Local & regional broker coverage, shown on the home page coverage map. */
+export const BROKER_REGIONS = [
+  { name: "West Coast", states: ["California", "Oregon", "Washington", "Nevada", "Arizona"] },
+  { name: "Texas & South", states: ["Texas", "Florida", "Louisiana", "Oklahoma", "Arkansas"] },
+  { name: "Midwest & Northeast", states: ["Ohio", "Illinois", "Indiana", "Michigan", "Pennsylvania", "Missouri", "Wisconsin"] },
+  { name: "Southeast", states: ["Georgia", "North Carolina", "South Carolina", "Tennessee", "Virginia", "Alabama"] },
 ];
 
 /** Seed source for the CMS "services" collection (see scripts/seed-cms.ts). */
@@ -131,7 +148,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Less deadhead", body: "Loads are planned in chains so you're rarely running empty more than 75 miles." },
       { title: "Steady volume", body: "Dedicated and recurring lanes from our broker network keep your truck moving week to week." },
     ],
-    avgRate: "$2.40 – $3.10 / mile",
+    avgRate: "$2.00 – $3.00 / mile",
+    weeklyGross: "$7,500 – $8,500",
     typicalLoads: ["Consumer packaged goods", "Palletized retail freight", "Paper & packaging", "Non-perishable food & beverage"],
     faqs: [
       { q: "Can you find dry van loads that keep me regional?", a: "Yes. Tell us your home base and radius and we'll build weekly loops that get you home on your schedule." },
@@ -160,7 +178,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Tarp pay secured", body: "We lock in tarp fees before the rate con is signed — no surprises at pickup." },
       { title: "Permit help", body: "We coordinate oversize permits and route surveys with your permit service." },
     ],
-    avgRate: "$2.75 – $3.60 / mile",
+    avgRate: "$2.50 – $3.50 / mile",
+    weeklyGross: "$9,000 – $11,000",
     typicalLoads: ["Steel coils & beams", "Lumber", "Building materials", "Machinery & equipment"],
     faqs: [
       { q: "Do you dispatch oversize loads?", a: "Yes, legal-width and oversize loads with permit coordination. Superloads are handled case-by-case." },
@@ -189,7 +208,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Fewer claims", body: "Temps, pulps and seal numbers are documented at every stop." },
       { title: "Round-the-clock", body: "Reefer problems don't wait for business hours — neither do we." },
     ],
-    avgRate: "$2.70 – $3.40 / mile",
+    avgRate: "$2.50 – $3.50 / mile",
+    weeklyGross: "$8,000 – $11,000",
     typicalLoads: ["Fresh produce", "Frozen foods", "Meat & poultry", "Dairy & beverages"],
     faqs: [
       { q: "Do you handle multi-stop reefer loads?", a: "Yes. We confirm every stop's appointment and stop-off pay before booking." },
@@ -218,7 +238,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Load pairing", body: "Two partials on one trip can beat a single full load on a per-mile basis." },
       { title: "Fast turns", body: "Short-notice loads keep your week full with fewer idle days." },
     ],
-    avgRate: "$1.90 – $2.80 / mile",
+    avgRate: "$2.50 – $3.50 / mile",
+    weeklyGross: "$7,000 – $10,000",
     typicalLoads: ["Machinery parts", "Oilfield equipment", "Vehicles", "Construction supplies"],
     faqs: [
       { q: "Do I need a CDL for hotshot?", a: "Only if your combined weight rating exceeds 26,001 lbs. We'll book within your license and weight limits." },
@@ -247,7 +268,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Legal height freight", body: "Haul 10' tall freight legally without oversize permits." },
       { title: "Versatility", body: "Book flatbed freight too when step deck lanes are slow." },
     ],
-    avgRate: "$2.90 – $3.80 / mile",
+    avgRate: "$2.50 – $3.50 / mile",
+    weeklyGross: "$7,000 – $11,000",
     typicalLoads: ["Construction machinery", "Tractors & ag equipment", "Industrial components", "Tall crated freight"],
     faqs: [
       { q: "Can you book flatbed freight on my step deck?", a: "Yes, many flatbed loads accept step deck. We'll mix both to keep you loaded." },
@@ -276,7 +298,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Minimal wait times", body: "Drop-and-hook freight means less time sitting at docks." },
       { title: "High volume", body: "Power-only programs offer consistent, repeatable freight." },
     ],
-    avgRate: "$1.90 – $2.60 / mile",
+    avgRate: "$2.00 – $3.00 / mile",
+    weeklyGross: "$7,000 – $9,000",
     typicalLoads: ["Pre-loaded dry van trailers", "Retail & e-commerce", "Trailer repositioning", "Dedicated shuttle runs"],
     faqs: [
       { q: "What insurance do I need for power only?", a: "Trailer interchange coverage is required by most programs. We'll help you verify limits." },
@@ -305,7 +328,8 @@ export const SERVICES: Omit<Service, "comparison" | "metaTitle" | "metaDescripti
       { title: "Accessorial pay", body: "Liftgate, inside delivery and pallet jack fees negotiated upfront." },
       { title: "Low entry cost", body: "A great way to grow a small fleet before moving into Class 8." },
     ],
-    avgRate: "$1.80 – $2.60 / mile",
+    avgRate: "$2.00 – $3.00 / mile",
+    weeklyGross: "$6,000 – $9,000",
     typicalLoads: ["Furniture & appliances", "Retail replenishment", "Expedited LTL", "Trade show freight"],
     faqs: [
       { q: "Do you dispatch box trucks without a CDL?", a: "Yes — box trucks under 26,001 lbs GVWR don't require a CDL." },
@@ -380,15 +404,6 @@ export const GENERAL_FAQS: FAQ[] = [
 ];
 
 export const EQUIPMENT_TYPES = SERVICES.map((s) => s.name).concat(["Other"]);
-
-export const CARRIER_BENEFITS = [
-  { title: "Higher weekly gross", body: "Carriers average 18–30% more weekly revenue in their first 90 days with Apex." },
-  { title: "No forced dispatch", body: "You approve every load. Your truck, your rules, your home time." },
-  { title: "Paperwork handled", body: "Broker packets, rate cons, BOLs, invoicing and factoring submissions done for you." },
-  { title: "24/7 real humans", body: "No call trees or chatbots — a dispatcher who knows your truck picks up." },
-  { title: "Lane strategy", body: "We plan loops and backhauls, not just one-off loads, to lower deadhead." },
-  { title: "Transparent reports", body: "Weekly RPM, deadhead and revenue reports so you always know where you stand." },
-];
 
 export const CARRIER_REQUIREMENTS = [
   "Active MC & USDOT number (new authorities welcome)",

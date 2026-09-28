@@ -251,9 +251,13 @@ export interface Service {
   description: string;
   image: number | Media;
   /**
-   * e.g. $2.40 – $3.10 / mile
+   * e.g. $2.00 – $3.00 / mile
    */
   avgRate: string;
+  /**
+   * e.g. $7,500 – $8,500. Estimate at ~2,500–3,000 mi/week — shown with the rate disclaimers from Site settings.
+   */
+  weeklyGross: string;
   included?:
     | {
         text: string;
@@ -792,6 +796,7 @@ export interface ServicesSelect<T extends boolean = true> {
   description?: T;
   image?: T;
   avgRate?: T;
+  weeklyGross?: T;
   included?:
     | T
     | {
@@ -1142,6 +1147,8 @@ export interface SiteSetting {
     linkedin?: string | null;
     x?: string | null;
   };
+  rateDisclaimer: string;
+  grossDisclaimer: string;
   /**
    * Top navigation and mobile menu (also the footer Company column).
    */
@@ -1243,6 +1250,8 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         linkedin?: T;
         x?: T;
       };
+  rateDisclaimer?: T;
+  grossDisclaimer?: T;
   nav?:
     | T
     | {

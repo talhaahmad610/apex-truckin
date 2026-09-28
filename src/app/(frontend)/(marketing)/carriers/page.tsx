@@ -1,5 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
-import { CARRIER_BENEFITS, CARRIER_REQUIREMENTS, STEPS } from "@/lib/constants";
+import { CARRIER_REQUIREMENTS, FULL_SERVICE, STEPS } from "@/lib/constants";
 import { getFaqs } from "@/lib/cms";
 import { faqLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
@@ -42,12 +42,15 @@ export default async function CarriersPage() {
 
       <RevealWrapper as="section" className="py-24 md:py-36">
         <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
-          <SectionLabel n="01" label="Benefits" />
-          <h2 data-reveal="up" className="mb-14 mt-6 max-w-3xl font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
-            What changes when <span className="text-gradient">Apex dispatches</span>
+          <SectionLabel n="01" label="What's included" />
+          <h2 data-reveal="up" className="mt-6 max-w-3xl font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
+            More than just <span className="text-gradient">load booking</span>
           </h2>
+          <p data-reveal="up" className="mb-14 mt-5 max-w-2xl text-muted">
+            Every Apex Truckin carrier gets the same six-part service, whether you run one truck or a growing fleet.
+          </p>
           <ul data-stagger-group className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {CARRIER_BENEFITS.map((b, i) => (
+            {FULL_SERVICE.map((b, i) => (
               <li key={b.title} data-stagger>
                 <TiltCard className="h-full rounded-[2rem]">
                   <div className="bezel h-full">
@@ -131,7 +134,7 @@ export default async function CarriersPage() {
         </div>
       </RevealWrapper>
 
-      <CTABannerSection title={<>Your truck. <span className="text-gradient">Our hustle.</span></>} truck={false} />
+      <CTABannerSection title={<>You drive. <span className="text-gradient">We handle the rest.</span></>} truck={false} />
     </>
   );
 }

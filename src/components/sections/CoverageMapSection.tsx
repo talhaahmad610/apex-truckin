@@ -1,13 +1,15 @@
 "use client";
 
 import { useRef } from "react";
-import { COVERAGE_STATS } from "@/lib/constants";
+import { BROKER_REGIONS } from "@/lib/constants";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
-import { CITIES, MAIN_ROUTE, SIDE_ROUTES, USA_PATH, USA_VIEWBOX, cityXY, routePath, type CityKey } from "@/lib/usa-map";
+import { CITIES, ROUTES, SIDE_ROUTES, USA_PATH, USA_VIEWBOX, cityXY, routePath, type CityKey } from "@/lib/usa-map";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 
-const mainD = routePath(MAIN_ROUTE);
+// One `d` string per candidate route, computed once. Index 0 renders on the server (and again on
+// the client's first paint, so hydration matches); a random index is then swapped in imperatively.
+const routeDs = ROUTES.map((r) => routePath(r));
 const sideDs = SIDE_ROUTES.map((r) => routePath(r, 0.08));
 const cityKeys = Object.keys(CITIES) as CityKey[];
 
@@ -22,6 +24,23 @@ export function CoverageMapSection() {
       const truck = el.querySelector<SVGGElement>("[data-truck]");
       const tilt = el.querySelector<HTMLElement>("[data-tilt]");
       if (!main || !truck || !tilt) return;
+
+      // Pick a random lane for this page load and swap it in before measuring the path — a direct
+      // DOM write (like the truck-position updates below), not React state, so there's no reflow
+      // from a second render and no hydration mismatch with the server-rendered default (index 0).
+      const routeIdx = Math.floor(Math.random() * ROUTES.length);
+      if (routeIdx !== 0) {
+        const chosen = ROUTES[routeIdx]!;
+        main.setAttribute("d", routeDs[routeIdx]!);
+        el.querySelectorAll<SVGGElement>("[data-city]").forEach((g) => {
+          const isMain = chosen.includes(g.dataset.city as CityKey);
+          const circles = g.querySelectorAll<SVGCircleElement>("circle");
+          circles[0]?.setAttribute("r", isMain ? "11" : "7");
+          circles[1]?.setAttribute("r", isMain ? "4" : "3");
+          circles[1]?.setAttribute("fill", isMain ? "#f5a623" : "#a0aec0");
+        });
+      }
+
       const len = main.getTotalLength();
       let lastP = -1;
       const placeTruck = (p: number, force = false) => {
@@ -79,12 +98,15 @@ export function CoverageMapSection() {
     <RevealWrapper as="section" id="coverage" className="relative overflow-hidden py-24 md:py-40">
       <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
         <div className="mx-auto mb-10 max-w-3xl text-center md:mb-4">
-          <SectionLabel n="—" label="Nationwide coverage" />
+          <SectionLabel n="—" label="Local broker network" />
           <h2 data-reveal="up" className="mt-6 font-display text-[clamp(3rem,8vw,7.5rem)] font-bold uppercase leading-[0.88]">
-            From here. <span className="text-gradient">To there.</span>
+            Local brokers. <span className="text-gradient">Direct shippers.</span>
           </h2>
           <p data-reveal="up" className="mx-auto mt-5 max-w-xl text-muted">
-            West coast produce, Midwest steel, Southeast retail — we book the lanes that pay across all lower 48 states.
+            Apex Truckin connects owner-operators and fleets directly with local and regional freight brokers and
+            shippers in 23 key states — not just the loads posted on DAT and Truckstop. Beyond these states, our
+            dispatchers still find and book freight nationwide across all 48 contiguous states through DAT, Truckstop
+            and our wider network of 1,200+ broker partners.
           </p>
         </div>
 
@@ -110,8 +132,8 @@ export function CoverageMapSection() {
                 role="img"
                 aria-labelledby="map-title map-desc"
               >
-                <title id="map-title">Apex Truckin coverage map</title>
-                <desc id="map-desc">A map of the contiguous United States showing a dispatch route from Los Angeles through Phoenix, Dallas, Kansas City and Chicago to New York.</desc>
+                <title id="map-title">Apex Truckin broker network map</title>
+                <desc id="map-desc">A map of the contiguous United States showing an example dispatch lane connecting the West Coast, Texas & South, Midwest & Northeast, and Southeast broker networks.</desc>
                 <defs>
                   <linearGradient id="route-grad" x1="0" x2="1">
                     <stop offset="0" stopColor="#f5a623" />
@@ -128,13 +150,13 @@ export function CoverageMapSection() {
                 {sideDs.map((d) => (
                   <path key={d} d={d} fill="none" stroke="rgba(245,166,35,0.22)" strokeWidth="1.2" strokeDasharray="4 6" />
                 ))}
-                <path d={mainD} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
-                <path data-main d={mainD} fill="none" stroke="url(#route-grad)" strokeWidth="3.2" strokeLinecap="round" filter="url(#glow)" />
+                <path d={routeDs[0]} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
+                <path data-main d={routeDs[0]} fill="none" stroke="url(#route-grad)" strokeWidth="3.2" strokeLinecap="round" filter="url(#glow)" />
                 {cityKeys.map((k) => {
                   const [x, y] = cityXY(k);
-                  const main = MAIN_ROUTE.includes(k);
+                  const main = ROUTES[0]!.includes(k);
                   return (
-                    <g key={k} data-city>
+                    <g key={k} data-city={k}>
                       <circle cx={x} cy={y} r={main ? 11 : 7} fill="rgba(245,166,35,0.12)" />
                       <circle cx={x} cy={y} r={main ? 4 : 3} fill={main ? "#f5a623" : "#a0aec0"} />
                       <text x={x + 10} y={y - 10} fill="rgba(255,255,255,0.72)" fontSize="13" fontWeight="500" style={{ letterSpacing: "0.06em" }}>
@@ -158,10 +180,10 @@ export function CoverageMapSection() {
         </div>
 
         <dl data-stagger-group className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 md:mt-6 md:grid-cols-4">
-          {COVERAGE_STATS.map((s) => (
-            <div key={s.label} data-stagger className="flex flex-col-reverse bg-[#0d0e14] p-6 text-center md:p-8">
-              <dt className="mt-2 text-[11px] uppercase tracking-[0.18em] text-muted">{s.label}</dt>
-              <dd className="font-display text-4xl font-bold text-gradient md:text-5xl">{s.value}</dd>
+          {BROKER_REGIONS.map((r) => (
+            <div key={r.name} data-stagger className="flex flex-col-reverse bg-[#0d0e14] p-6 text-center md:p-8">
+              <dt className="mt-2 text-[11px] uppercase tracking-[0.18em] text-muted">{r.states.join(" · ")}</dt>
+              <dd className="font-display text-3xl font-bold text-gradient md:text-4xl">{r.name}</dd>
             </div>
           ))}
         </dl>

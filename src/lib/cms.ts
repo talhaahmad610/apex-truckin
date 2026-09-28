@@ -156,6 +156,8 @@ export const getSiteSettings = unstable_cache(
         legalLinks: (s.legalLinks ?? []).map((n) => ({ label: n.label, href: n.href })),
         image: mediaUrl(s.footerImage) || null,
       },
+      rateDisclaimer: s.rateDisclaimer,
+      grossDisclaimer: s.grossDisclaimer,
     };
   },
   ["cms:site-settings"],
@@ -177,6 +179,7 @@ function serviceFromDoc(d: CmsService): Service {
     requirements: txt(d.requirements),
     benefits: (d.benefits ?? []).map((b) => ({ title: b.title, body: b.body })),
     avgRate: d.avgRate,
+    weeklyGross: d.weeklyGross,
     typicalLoads: txt(d.typicalLoads),
     faqs: (d.faqs ?? []).map((f) => ({ q: f.q, a: f.a })),
     comparison: {

@@ -1,5 +1,5 @@
 import { pageMetadata } from "@/lib/seo";
-import { getServices } from "@/lib/cms";
+import { getServices, getSiteSettings } from "@/lib/cms";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { MarqueeTicker } from "@/components/sections/MarqueeTicker";
 import { StatsSection } from "@/components/sections/StatsSection";
@@ -24,20 +24,20 @@ export const generateMetadata = () => pageMetadata({
 });
 
 export default async function HomePage() {
-  const services = await getServices();
+  const [services, site] = await Promise.all([getServices(), getSiteSettings()]);
   return (
     <>
       <HeroSection />
       <MarqueeTicker />
       <StatsSection />
       <AboutSection />
-      <ServicesSection services={services} />
+      <ServicesSection services={services} disclaimer={`${site.rateDisclaimer} ${site.grossDisclaimer}`} />
       <HowItWorksSection />
       <CoverageMapSection />
       <PricingSection />
       <BlogPreviewSection />
       <TestimonialsSection />
-      <CTABannerSection />
+      <CTABannerSection title={<>You drive. <span className="text-gradient">We handle the rest.</span></>} />
       <ContactSection />
     </>
   );

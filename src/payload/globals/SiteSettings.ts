@@ -126,6 +126,30 @@ export const SiteSettings: GlobalConfig = {
           ],
         },
         {
+          label: "Rates",
+          description: "Qualifiers shown next to any per-mile rate or weekly-gross figure on the site (services, home page).",
+          fields: [
+            {
+              name: "rateDisclaimer",
+              label: "Rate disclaimer",
+              type: "textarea",
+              required: true,
+              maxLength: 300,
+              defaultValue:
+                "Rates vary by state, lane, equipment, load type, market conditions, deadhead and negotiated rate, and are not guaranteed.",
+            },
+            {
+              name: "grossDisclaimer",
+              label: "Weekly gross disclaimer",
+              type: "textarea",
+              required: true,
+              maxLength: 300,
+              defaultValue:
+                "Weekly gross is an estimate based on about 2,500–3,000 miles per week, before fuel, dispatch fees, insurance and other operating costs. It is not a guarantee of earnings — actual revenue varies by market, lanes, load availability, equipment and negotiated rates.",
+            },
+          ],
+        },
+        {
           label: "Navigation",
           fields: [
             {

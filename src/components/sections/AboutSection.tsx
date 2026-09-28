@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { PILLARS } from "@/lib/constants";
+import { FULL_SERVICE } from "@/lib/constants";
 import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Button } from "@/components/ui/Button";
@@ -17,13 +17,13 @@ export function AboutSection() {
 
       <div className="mx-auto grid max-w-[1320px] gap-14 px-4 sm:px-8 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-5">
-          <SectionLabel n="—" label="Why Apex" />
+          <SectionLabel n="—" label="Full-service dispatch" />
           <h2 data-reveal="up" className="mt-6 font-display text-[clamp(2.75rem,6.5vw,5.75rem)] font-bold uppercase leading-[0.9]">
-            Your freight. <span className="text-gradient">Our responsibility.</span>
+            More than just <span className="text-gradient">load booking.</span>
           </h2>
           <p data-reveal="up" className="mt-7 max-w-md text-lg leading-relaxed text-white/75">
-            We&apos;re dispatchers who&apos;ve sat in the driver&apos;s seat. Every load we book is one we&apos;d haul ourselves —
-            fair rate, clean broker, realistic appointment.
+            You drive. We handle the rest — paperwork, broker negotiation, load problems and your next load, planned before
+            you deliver.
           </p>
           <div data-reveal="up" className="mt-9">
             <Button href="/about" variant="ghost">Our Story</Button>
@@ -31,8 +31,8 @@ export function AboutSection() {
         </div>
 
         <ol data-stagger-group className="grid gap-4 lg:col-span-7 lg:pl-8">
-          {PILLARS.map((p, i) => (
-            <li key={p.n} data-stagger style={{ marginLeft: `${i * 6}%` }} className="max-lg:!ml-0">
+          {FULL_SERVICE.map((p, i) => (
+            <li key={p.n} data-stagger style={{ marginLeft: `${(i % 3) * 6}%` }} className="max-lg:!ml-0">
               <div className="bezel">
                 <div className="bezel-core grid grid-cols-[auto_1fr] items-start gap-6 p-7 md:p-8">
                   <span className="font-display text-5xl font-bold leading-none text-gradient">{p.n}</span>
