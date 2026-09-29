@@ -12,7 +12,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: apex
-      POSTGRES_PASSWORD: apex_dev_password
+      # Local default; a real deployment sets POSTGRES_PASSWORD in .env.docker (see .env.docker.example).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apex_dev_password}
       POSTGRES_DB: apex_truckin
     ports:
       - "127.0.0.1:5432:5432"
@@ -24,9 +25,13 @@ services:
       timeout: 3s
       retries: 10
 
+  # LOCAL DEV ONLY. On a real deployment, MinIO/S3 is run and administered separately (the lead
+  # dev's own S3-compatible endpoint) — `profiles: [minio]` means this never starts unless asked
+  # for (`npm run infra:up`). The app container never depends on it.
   minio:
     image: cgr.dev/chainguard/minio:latest
     restart: unless-stopped
+    profiles: ["minio"]
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
       MINIO_ROOT_USER: apex_minio
@@ -39,11 +44,18 @@ services:
       - "127.0.0.1:9001:9001" # web console
     volumes:
       - miniodata:/data
+    networks:
+      default:
+        # One URL works from both sides: a browser on the host resolves *.localhost to 127.0.0.1
+        # (the published port above); the app/tools containers resolve it to MinIO via this alias.
+        aliases:
+          - media.localhost
 
   # One-shot: create the bucket and allow anonymous READ on the public prefixes only.
   # `raw/` (unprocessed hero footage) and everything else stays private.
   minio-init:
     image: amazon/aws-cli:latest
+    profiles: ["minio"]
     depends_on:
       - minio
     restart: "no"

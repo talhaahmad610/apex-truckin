@@ -60,6 +60,71 @@ MinIO (S3-compatible storage) · GSAP + ScrollTrigger · Lenis (smooth scroll) �
 
 `npm run infra:down` stops Postgres/MinIO (data persists in Docker volumes between runs).
 
+## Run it in Docker
+
+The whole app — Next.js + Payload, ffmpeg baked in, no `node_modules` in the shipped image — also runs as a
+multi-stage Docker image, with Postgres in its own container. This is the same path for local Docker use and for a
+real server; only `.env.docker` differs between them.
+
+**First time, local:**
+
+```bash
+cp .env.docker.example .env.docker
+npm run infra:up      # this repo's own Postgres + MinIO (MinIO is local-dev-only, see below)
+npm run docker:seed   # builds the tools image, migrates, seeds — first run only
+npm run docker:up     # builds + starts the app
+```
+
+Open `http://localhost:3200`. `npm run docker:logs` tails the app; `npm run docker:down` stops everything.
+
+**On a server:** MinIO/S3 is the lead dev's own endpoint, not this repo's — `.env.docker`'s `S3_*` values point at
+it directly, and the app never starts or depends on this repo's `minio` service. There's no `npm` step at all:
+
+```bash
+git clone <this repo> && cd apex-truckin
+cp .env.example .env.local && cp .env.docker.example .env.docker   # fill in real values
+sh scripts/compose.sh up -d --build
+```
+
+No separate seed step: the committed snapshot restores your content automatically on first boot (below), and the
+app creates its own first admin account at startup from `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` in `.env.local` —
+set a real password there (12+ characters, not the placeholder) before the first boot. `npm run seed` is a
+*local-dev* convenience for a from-scratch database with no snapshot yet; running it against a server that already
+has content would overwrite any edits made in the admin since the last export, so the server never runs it.
+
+**Why no live database is needed to build the image:** `next build` normally pre-renders every CMS page, which
+needs one — impossible from inside `docker build` (the build container can't reach a database that only exists
+once the stack is running). Instead, the image builds with `SKIP_BUILD_STATIC_GENERATION=1`
+(`src/lib/build-flags.ts`): CMS pages render on-demand at runtime instead (identical result, just not baked at
+build time), and the running container applies pending migrations, seeds nothing on its own, and starts the jobs
+queue itself the moment it boots (`src/instrumentation.ts`) — there's no separate `payload migrate` step to
+remember on deploy.
+
+**Your local content carries over automatically.** Whenever you change something locally you want to keep —
+new services/pages/copy, an uploaded image, a processed hero clip — run:
+
+```bash
+npm run snapshot:export
+```
+
+and commit the result (`snapshot/db.dump` + `snapshot/media/` + its manifest — a few MB, all in the repo, nothing
+external to keep track of). The **first** time `docker:up` runs against an empty database/bucket, it restores that
+snapshot automatically (`db-restore` / `media-restore` in `docker-compose.app.yml`, via `scripts/db-restore.sh` /
+`scripts/snapshot.ts`). Every run after that is a no-op, since it only ever restores into something empty; it never
+overwrites existing content. This is what makes "the same database on the server" a `git push` + `docker:up`, not a
+manual export/import someone has to remember to run.
+
+**The dump never contains credentials or visitor data.** `npm run snapshot:export` (`scripts/db-export.sh`) excludes
+the *data* of the `users`, `leads`, `subscribers`, and Payload's own internal `payload_preferences`/`payload_jobs`/
+`payload_kv`/`payload_locked_documents` tables — only their (empty) schema ships, so the committed dump can never
+leak a password hash, a session token, or a lead/subscriber's contact info. A restored server therefore starts with
+zero users; its first admin is created automatically at boot from `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (see
+`src/lib/ensure-admin.ts`), and Payload's normal "claim the first account" screen is disabled outright so nothing
+else can create that first user.
+
+**No ffmpeg to install, ever, anywhere** — `Dockerfile`'s final stage installs it inside the image itself
+(`apk add ffmpeg`, ~70 MB), so a server only ever needs Docker.
+
 ## Editing the site
 
 Everything below lives in `/admin`, grouped the same way in its sidebar:
@@ -126,6 +191,8 @@ A newsletter signup creates or reactivates a **Subscriber**; a duplicate email i
 | `npm run generate:types` | Regenerate `src/payload-types.ts` from the current collections/globals |
 | `npm run generate:importmap` | Regenerate the admin panel's import map (after adding custom admin components) |
 | `npm run payload` | Raw Payload CLI passthrough |
+| `npm run snapshot:export` / `snapshot:import` | Mirror the database + bucket to/from `snapshot/` (see [Run it in Docker](#run-it-in-docker)) |
+| `npm run docker:up` / `docker:down` / `docker:seed` / `docker:logs` | Build/run the app in Docker locally |
 
 ## Schema changes
 
@@ -146,25 +213,35 @@ this shouldn't happen going forward — but if it does, delete that row from the
 
 ## Backups
 
-- **Database:** `pg_dump` the `apex_truckin` database (`docker compose exec postgres pg_dump -U apex apex_truckin > backup.sql`).
-- **Media/hero footage:** mirror the MinIO bucket with the AWS CLI against `S3_ENDPOINT` — e.g.
-  `aws --endpoint-url http://127.0.0.1:9000 s3 sync s3://apex-media ./media-backup`.
+`npm run snapshot:export` (see [Run it in Docker](#run-it-in-docker)) is the one command that captures both the
+database and the media bucket together, in the format the automatic restore expects — prefer it over ad hoc
+one-off backups. The two halves it runs, if you ever need them separately:
+
+- **Database:** `docker compose exec postgres pg_dump -U apex -Fc apex_truckin > backup.dump`.
+- **Media/hero footage:** `npm run snapshot:export` writes `snapshot/media/` via the S3 API (works against any
+  S3-compatible endpoint, not just this repo's MinIO); the AWS CLI's `s3 sync` is an equivalent one-liner if you
+  just want a copy without the manifest: `aws --endpoint-url $S3_ENDPOINT s3 sync s3://apex-media ./media-backup`.
 
 ## Deployment outline
 
-This isn't a serverless app (Payload's jobs queue and file processing need a long-running Node process) — the
-natural target is a small VPS running the same Postgres + MinIO compose stack, plus the Next app built with
-`next build` and run with `next start`. A few things differ from local dev:
+Not a serverless app — Payload's jobs queue and file processing need a long-running Node process — so the target
+is a small VPS: Docker, this repo, and `sh scripts/compose.sh up -d --build` (see [Run it in Docker](#run-it-in-docker)
+for the full first-run sequence). A few things differ from local dev:
 
-- `NEXT_PUBLIC_SITE_URL` and `S3_PUBLIC_URL` point at real hostnames (the latter typically a `media.` subdomain
-  behind a reverse proxy, with HTTPS).
-- Set `INTERNAL_SITE_URL` if the app container can't reach its own public URL — the hero-footage job calls back into
-  `/api/revalidate` after each clip finishes processing.
-- Narrow `MINIO_API_CORS_ALLOW_ORIGIN` (in `docker-compose.yml`) from `*` down to the site's real origin.
-- Install ffmpeg in the image the app runs in.
+- `NEXT_PUBLIC_SITE_URL` and `S3_PUBLIC_URL` in `.env.docker` point at real hostnames, with HTTPS. `S3_*` points at
+  the lead dev's own S3-compatible endpoint — this repo's `minio` service is local-dev-only and is never started
+  (no `--profile minio`) or depended on there.
+- Set `INTERNAL_SITE_URL` only if the app container genuinely can't reach its own public URL — the hero-footage job
+  calls back into `/api/revalidate` after each clip finishes; the default (the container's own loopback) covers the
+  normal case.
+- ffmpeg needs nothing done for it — it's baked into the image (`Dockerfile`), not installed on the server.
+- Ask the lead dev to apply `infra/minio-bucket-policy.json` (substituting the real bucket name) on his endpoint, or
+  let `npm run snapshot:import`/the automatic `media-restore` step attempt it — it warns rather than fails if the
+  endpoint refuses.
 - Verify a sending domain with Resend before production emails go out.
-- Every secret in `.env.example` needs a real, unique production value — the ones there are local throwaway
-  credentials only.
+- Every secret in `.env.example`/`.env.docker.example` needs a real, unique production value — the ones there are
+  local throwaway credentials only.
+- Put a reverse proxy (Caddy/Nginx) in front of the app's published port for TLS.
 
 ## API
 
@@ -179,7 +256,7 @@ natural target is a small VPS running the same Postgres + MinIO compose stack, p
 
 ```
 src/
-  app/(frontend)/(marketing)/   the public site: /, blog(/[slug]), services/[slug], [...slug] (the page builder)
+  app/(frontend)/(marketing)/   the public site: [[...slug]] (home + the page builder), blog(/[slug]), services/[slug]
   app/(frontend)/layout.tsx     public-site-only root layout (fonts, smooth scroll, toaster)
   app/(payload)/                Payload's admin UI + /cms-api, its own root layout
   app/api/                      contact, newsletter, posts*, preview, revalidate
@@ -188,12 +265,14 @@ src/
   components/blocks/            page-builder block renderers + RenderBlocks (the block → component dispatcher)
   components/sections/          section components blocks render (also used by services/[slug], the blog)
   components/ui/                Button, Card, PricingCard, BlogCard, TestimonialCard, FAQAccordion, …
-  lib/                          cms.ts (CMS reads), tokens.ts, seo.ts, footage.ts, s3.ts, schemas (Zod), usa-map
-  payload/                      collections/, globals/, blocks/ (Payload config), hooks/, access/
+  lib/                          cms.ts (CMS reads), tokens.ts, seo.ts, footage.ts, s3.ts, build-flags.ts, schemas (Zod)
+  payload/                      collections/, globals/, blocks/ (Payload config), hooks/, jobs/, access/
   payload.config.ts
-scripts/                        seed-cms.ts, process-footage.ts, process-images.mjs, ffmpeg-path.mjs
+  instrumentation.ts             starts Payload (migrations, jobs cron) once at server boot
+scripts/                        seed-cms.ts, snapshot.ts, process-footage.ts, process-images.mjs, db-restore.sh
 assets/                         raw/ (source hero video), raw-images/ (source photos) — gitignored, CREDITS.md tracked
-docker-compose.yml              Postgres + MinIO for local dev
+snapshot/                       committed db.dump + media/ mirror — restored automatically on a fresh deploy
+Dockerfile, docker-compose.yml, docker-compose.app.yml   see "Run it in Docker"
 ```
 
 ## Notes

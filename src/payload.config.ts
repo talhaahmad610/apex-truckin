@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
 import { isNextBuild } from "payload/shared";
+import { ensureAdmin } from "./lib/ensure-admin";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { s3Storage } from "@payloadcms/storage-s3";
@@ -93,6 +94,10 @@ export default buildConfig({
   // Docker image build has no live database to write to (see src/lib/build-flags.ts).
   onInit: async (payload) => {
     if (isNextBuild()) return;
+    // Runs before this Payload instance is cached (see BasePayload.init), so it always completes
+    // before the first request — including a request that would otherwise hit the public
+    // first-register endpoint — can be served. See src/lib/ensure-admin.ts for why this exists.
+    await ensureAdmin(payload);
     await payload.update({
       collection: "payload-jobs",
       where: { and: [{ taskSlug: { equals: "processFlightLeg" } }, { processing: { equals: true } }] },
@@ -158,5 +163,8 @@ export default buildConfig({
     }),
   ],
   typescript: { outputFile: path.resolve(dirname, "payload-types.ts") },
-  graphQL: { disablePlaygroundInProduction: true },
+  // Nothing in this app uses GraphQL (the admin and the site's REST wrappers use the REST API) —
+  // disabled outright rather than just hiding the playground, to remove the introspection/query-
+  // complexity surface entirely.
+  graphQL: { disable: true },
 });

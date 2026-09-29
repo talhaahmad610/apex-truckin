@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.playwright-cli
+.env*
+!.env.example
+!.env.docker.example
+assets/raw
+assets/raw-images
+tool-results
+*.log
+npm-debug.log*
+.DS_Store
+coverage

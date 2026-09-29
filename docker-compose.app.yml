@@ -1,0 +1,89 @@
+# Layered on top of docker-compose.yml (`-f docker-compose.yml -f docker-compose.app.yml`, or via
+# `npm run docker:up` / `scripts/compose.sh`, which always passes both). Adds the app itself plus
+# the one-shot restores that seed a fresh deployment from the committed `snapshot/` — see README
+# "Run it in Docker". The app never depends on this repo's own `minio` service (`profiles: [minio]`
+# in docker-compose.yml): on a server, S3_* in .env.docker points at the lead dev's own endpoint.
+name: apex-truckin
+
+services:
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3200}
+        S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://media.localhost:9000}
+        S3_BUCKET: ${S3_BUCKET:-apex-media}
+    env_file:
+      - .env.local
+      - .env.docker
+    environment:
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+    ports:
+      - "${APP_PORT:-3200}:3000"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-restore:
+        condition: service_completed_successfully
+      media-restore:
+        condition: service_completed_successfully
+
+  # Restores snapshot/db.dump into an EMPTY database only (see scripts/db-restore.sh); a no-op
+  # every time after that. Uses the same image as the `postgres` service so pg_restore is always
+  # version-matched.
+  db-restore:
+    image: postgres:17-alpine
+    env_file:
+      - .env.docker
+    volumes:
+      - ./snapshot:/snapshot:ro
+      - ./scripts/db-restore.sh:/db-restore.sh:ro
+    entrypoint: ["/bin/sh", "/db-restore.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Re-uploads any object present in snapshot/media.manifest.json but missing from the bucket
+  # (see scripts/snapshot.ts) — a no-op every time after that. Best-effort bucket/policy creation;
+  # only warns if the target S3 endpoint refuses (the lead-dev-owned-MinIO case).
+  media-restore:
+    image: apex-truckin:tools
+    build:
+      context: .
+      target: tools
+    env_file:
+      - .env.local
+      - .env.docker
+    volumes:
+      - ./snapshot:/app/snapshot
+    command: ["npm", "run", "snapshot:import"]
+    depends_on:
+      # Only present locally (`profiles: [minio]` in docker-compose.yml) — `required: false` means
+      # this wait is skipped entirely on a server, where minio/minio-init don't exist and S3_* points
+      # at the lead dev's own endpoint. Waiting on minio-init (not just minio) matters: minio-init
+      # itself polls until the S3 API actually answers, so this avoids a startup race against MinIO
+      # not yet being ready to accept connections.
+      minio-init:
+        condition: service_completed_successfully
+        required: false
+
+  # `docker compose --profile tools run --rm tools <command>` — migrate:create, seed, footage,
+  # generate:types, or a shell. Never started by `docker:up`; not part of the app's dependency graph.
+  tools:
+    image: apex-truckin:tools
+    build:
+      context: .
+      target: tools
+    profiles: ["tools"]
+    env_file:
+      - .env.local
+      - .env.docker
+    volumes:
+      - ./snapshot:/app/snapshot
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["npm", "run", "seed"]

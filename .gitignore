@@ -42,6 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 !.env.example
+!.env.docker.example
 
 # raw source media (processed output lives in public/) — credits files are still tracked
 /assets/raw/

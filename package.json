@@ -12,14 +12,20 @@
     "typecheck": "tsc --noEmit",
     "footage": "payload run scripts/process-footage.ts",
     "images": "node scripts/process-images.mjs",
-    "infra:up": "docker compose up -d",
-    "infra:down": "docker compose down",
+    "infra:up": "docker compose --profile minio up -d",
+    "infra:down": "docker compose --profile minio down",
     "payload": "payload",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
     "migrate:create": "payload migrate:create",
     "migrate": "payload migrate",
-    "seed": "payload run scripts/seed-cms.ts"
+    "seed": "payload run scripts/seed-cms.ts",
+    "snapshot:export": "sh scripts/db-export.sh && payload run scripts/snapshot.ts export",
+    "snapshot:import": "payload run scripts/snapshot.ts import",
+    "docker:up": "sh scripts/compose.sh --profile minio up -d --build",
+    "docker:down": "sh scripts/compose.sh --profile minio down",
+    "docker:seed": "sh scripts/compose.sh --profile tools run --rm tools npm run seed",
+    "docker:logs": "sh scripts/compose.sh logs -f app"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1141.0",

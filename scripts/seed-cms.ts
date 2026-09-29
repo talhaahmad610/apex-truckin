@@ -9,6 +9,7 @@
 import path from "path";
 import { getPayload, type Payload } from "payload";
 import config from "../src/payload.config";
+import { ensureAdmin } from "../src/lib/ensure-admin";
 import { htmlToLexical } from "../src/payload/htmlToLexical";
 import { SEED_POSTS, SEED_TESTIMONIALS } from "../src/lib/seed-data";
 import flightManifest from "../src/lib/flight-manifest.json";
@@ -31,17 +32,6 @@ import {
 const ctx = () => ({ disableRevalidate: true });
 const log = (...a: unknown[]) => console.log("[seed]", ...a);
 
-async function ensureAdmin(payload: Payload) {
-  const { totalDocs } = await payload.count({ collection: "users" });
-  if (totalDocs) return log("admin user exists — skipped");
-  const email = process.env.SEED_ADMIN_EMAIL;
-  const password = process.env.SEED_ADMIN_PASSWORD;
-  if (!email || !password || password.startsWith("replace_with")) {
-    throw new Error("No users yet: set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env.local (or create one at /admin).");
-  }
-  await payload.create({ collection: "users", data: { email, password, name: "Admin" }, context: ctx() });
-  log(`created admin user ${email}`);
-}
 
 /** Upload a file from /public (once) and return its media id. Matches on the stored filename. */
 const mediaCache = new Map<string, number>();
