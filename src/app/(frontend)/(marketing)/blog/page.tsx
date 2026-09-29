@@ -8,7 +8,7 @@ import { RevealWrapper } from "@/components/ui/RevealWrapper";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { JsonLd } from "@/components/ui/JsonLd";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const generateMetadata = async () => {
   const content = await getSiteContent();

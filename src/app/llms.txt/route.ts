@@ -2,7 +2,7 @@ import { getPosts, getPricingTiers, getPublishedPages, getServices, getSiteConte
 import { SITE_URL } from "@/lib/seo";
 import { fillTokens } from "@/lib/tokens";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 /** /llms.txt — concise, citation-friendly summary for AI assistants. */
 export async function GET() {

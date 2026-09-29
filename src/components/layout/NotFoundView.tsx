@@ -1,10 +1,17 @@
+import { connection } from "next/server";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { DepthLayers } from "@/components/3d/DepthLayers";
 import { getSiteSettings } from "@/lib/cms";
+import { skipStaticGeneration } from "@/lib/build-flags";
 
 export async function NotFoundView() {
+  // Forces this to render at request time during a DB-free Docker build only (see
+  // SiteDocument.tsx) — the 404 views have no dynamic params to key off of, so Next would
+  // otherwise try to prerender them (and read the database) during `next build`. A plain host
+  // build is unaffected and keeps prerendering this exactly as before.
+  if (skipStaticGeneration) await connection();
   const site = await getSiteSettings();
   return (
     <>

@@ -1,7 +1,7 @@
 import { getTestimonials } from "@/lib/cms";
 import { json } from "@/lib/http";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 /** GET /api/testimonials — all testimonials, featured first. */
 export async function GET() {

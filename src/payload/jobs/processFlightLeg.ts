@@ -16,7 +16,7 @@ import {
   resolveBin,
   runFfmpeg,
 } from "../../lib/footage";
-import { downloadObjectToFile, publicUrl, uploadFile } from "../../lib/s3";
+import { downloadObjectToFile, uploadFile } from "../../lib/s3";
 import { revalidateToken } from "../../lib/revalidate-token";
 
 const execFileAsync = promisify(execFile);
@@ -140,15 +140,17 @@ export const processFlightLeg: TaskConfig<ProcessFlightLegIO> = {
       await uploadFile(`${prefix}/poster.webp`, await readFile(posterOut), "image/webp", cacheControl);
       await uploadFile(`${prefix}/poster-m.webp`, await readFile(posterMobileOut), "image/webp", cacheControl);
 
-      // Only overwritten here, on success — the hero keeps playing the previous output until now.
+      // Bucket KEYS, not full URLs — so a snapshot restored on another machine (a different
+      // S3_PUBLIC_URL) plays clips from wherever that machine's bucket actually is, not the one
+      // that originally encoded them. Resolved to a URL at read time by src/lib/cms.ts.
       await mark({
         status: "ready",
         error: null,
         output: {
-          desktop: publicUrl(`${prefix}/desktop.mp4`),
-          mobile: publicUrl(`${prefix}/mobile.mp4`),
-          poster: publicUrl(`${prefix}/poster.webp`),
-          posterMobile: publicUrl(`${prefix}/poster-m.webp`),
+          desktop: `${prefix}/desktop.mp4`,
+          mobile: `${prefix}/mobile.mp4`,
+          poster: `${prefix}/poster.webp`,
+          posterMobile: `${prefix}/poster-m.webp`,
           duration: realDuration,
           hash,
         },

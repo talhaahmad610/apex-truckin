@@ -3,7 +3,7 @@ import { getPosts, getPublishedPages, getServices } from "@/lib/cms";
 import { absoluteUrl } from "@/lib/utils";
 import { SITE_URL } from "@/lib/seo";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

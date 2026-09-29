@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { isAdmin } from "../access";
 import { revalidate } from "../hooks/revalidate";
-import { deleteObjectsUnderPrefix } from "../../lib/s3";
+import { deleteObjectsUnderPrefix, resolveMediaPath } from "../../lib/s3";
 
 /**
  * Raw hero-video uploads for the scroll-scrubbed home hero (FlightScrub). Nothing here is public —
@@ -29,7 +29,7 @@ export const FlightSources: CollectionConfig = {
     crop: false,
     adminThumbnail: ({ doc }) => {
       const poster = (doc as { output?: { poster?: string | null } } | undefined)?.output?.poster;
-      return typeof poster === "string" ? poster : null;
+      return typeof poster === "string" ? resolveMediaPath(poster) : null;
     },
   },
   fields: [

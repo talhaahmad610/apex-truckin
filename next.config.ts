@@ -14,6 +14,9 @@ const media = mediaOrigin ? new URL(mediaOrigin) : null;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // A self-contained `.next/standalone/server.js` the Docker image runs directly — no full
+  // `node_modules` needed in the final image (see Dockerfile).
+  output: "standalone",
   // Turbopack is the default build/dev tool as of Next 16; a custom `webpack()` config here
   // makes `next build` fail outright (see Next 16 upgrade guide) — don't add one.
   turbopack: { root: path.resolve(dirname) },

@@ -25,6 +25,17 @@ export function publicUrl(key: string): string {
   return `${publicOrigin}/${bucket}/${key}`;
 }
 
+/**
+ * A `flight-sources` output field is a bucket KEY (e.g. `flight/<hash>/desktop.mp4`), resolved to
+ * this environment's `S3_PUBLIC_URL` at read time — so a database snapshot restored on another
+ * machine plays clips from wherever THAT machine's bucket is, not the one that encoded them.
+ * Older/seeded rows store a site-relative path (`/flight/desktop/leg-1.mp4`, served by Next itself,
+ * not the bucket) — passed through unchanged.
+ */
+export function resolveMediaPath(value: string): string {
+  return value.startsWith("/") ? value : publicUrl(value);
+}
+
 export const s3Client = new S3Client({
   endpoint: process.env.S3_ENDPOINT,
   region: process.env.S3_REGION || "us-east-1",

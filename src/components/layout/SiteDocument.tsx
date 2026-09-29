@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { SmoothScroll } from "@/components/3d/SmoothScroll";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { LazyToaster } from "@/components/layout/LazyToaster";
@@ -7,12 +8,18 @@ import { organizationLd, websiteLd } from "@/lib/seo";
 import { getServices, getSiteSettings } from "@/lib/cms";
 import { buildCsp } from "@/lib/csp";
 import { getMediaOrigin } from "@/lib/media-origin";
+import { skipStaticGeneration } from "@/lib/build-flags";
 
 /**
  * The public site's <html>/<body> shell. Shared by the (frontend) root layout and
  * app/global-not-found.tsx, which bypasses layouts entirely and must render its own document.
  */
 export async function SiteDocument({ children }: { children: React.ReactNode }) {
+  // /_not-found has no dynamic segment to skip via generateStaticParams (unlike every CMS route,
+  // which already renders on-demand during a DB-free build — see build-flags.ts) and Next always
+  // attempts to prerender it, so this is the one place that needs an explicit bailout, and only
+  // for the DB-free Docker build: a plain host build must keep prerendering it normally.
+  if (skipStaticGeneration) await connection();
   const [site, services] = await Promise.all([getSiteSettings(), getServices()]);
   const csp = buildCsp({
     head: site.scripts.head,

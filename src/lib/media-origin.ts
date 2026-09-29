@@ -11,7 +11,11 @@ export function getMediaOrigin(): { origin: string; isLoopback: boolean } {
   if (!raw) return { origin: "", isLoopback: false };
   try {
     const url = new URL(raw);
-    return { origin: url.origin, isLoopback: ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) };
+    // Local Docker dev resolves a `*.localhost` media host (e.g. media.localhost) to a container
+    // IP from inside the app container, and to 127.0.0.1 from a browser on the host — same
+    // "loopback, no real public hostname" case as bare localhost/127.0.0.1.
+    const isLoopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || url.hostname.endsWith(".localhost");
+    return { origin: url.origin, isLoopback };
   } catch {
     return { origin: "", isLoopback: false };
   }

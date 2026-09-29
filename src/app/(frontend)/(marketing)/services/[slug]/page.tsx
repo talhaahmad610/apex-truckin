@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { getFaqs, getPricingTiers, getServiceBySlug, getServices, getSiteContent, getSiteSettings } from "@/lib/cms";
 import { faqLd, pageMetadata, serviceLd } from "@/lib/seo";
 import { fillTokens } from "@/lib/tokens";
+import { skipStaticGeneration } from "@/lib/build-flags";
 import { PageHero } from "@/components/sections/PageHero";
 import { PricingSection } from "@/components/sections/PricingSection";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
@@ -24,6 +25,7 @@ export const revalidate = 300;
 // Pre-render every service that exists at build time; services added later in the CMS render on
 // first request (and are cached) instead of 404ing.
 export async function generateStaticParams() {
+  if (skipStaticGeneration) return [];
   return (await getServices()).map((s) => ({ slug: s.slug }));
 }
 

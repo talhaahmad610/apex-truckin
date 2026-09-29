@@ -2,6 +2,7 @@ import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
+import { isNextBuild } from "payload/shared";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { s3Storage } from "@payloadcms/storage-s3";
@@ -28,6 +29,7 @@ import { HomePage } from "./payload/globals/HomePage";
 import { HOME_ONLY_BLOCKS } from "./payload/blocks/home";
 import { REUSABLE_BLOCKS } from "./payload/blocks/shared";
 import { processFlightLeg } from "./payload/jobs/processFlightLeg";
+import { migrations } from "./migrations";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -87,7 +89,10 @@ export default buildConfig({
   },
   // A crashed process can leave a job (and its doc) stuck at processing: true/"processing" forever
   // — nothing re-picks it, since the claim query filters on processing === false. Reset on boot.
+  // Skipped during `next build`: onInit isn't gated by Payload itself (unlike the jobs cron), and a
+  // Docker image build has no live database to write to (see src/lib/build-flags.ts).
   onInit: async (payload) => {
+    if (isNextBuild()) return;
     await payload.update({
       collection: "payload-jobs",
       where: { and: [{ taskSlug: { equals: "processFlightLeg" } }, { processing: { equals: true } }] },
@@ -108,6 +113,10 @@ export default buildConfig({
     // Schema changes ONLY via committed migrations (npm run migrate:create / migrate), in dev too —
     // dev-mode push drifts from the migration history and makes `payload migrate` prompt/hang.
     push: false,
+    // Applied automatically on connect when NODE_ENV=production (already-applied names are
+    // skipped) — this is what lets the Docker image apply pending migrations at container boot
+    // (via src/instrumentation.ts) instead of needing a separate `payload migrate` step on deploy.
+    prodMigrations: migrations,
   }),
   sharp,
   email: process.env.RESEND_API_KEY

@@ -7,6 +7,7 @@ import { ArrowLeft, CalendarDays, Clock3, UserRound } from "lucide-react";
 import { getPostBySlug, getPosts, getRelatedPosts, getSiteContent, getSiteSettings } from "@/lib/cms";
 import { articleLd, breadcrumbLd, pageMetadata } from "@/lib/seo";
 import { absoluteUrl, buildToc, formatDate } from "@/lib/utils";
+import { skipStaticGeneration } from "@/lib/build-flags";
 import { BlogCard } from "@/components/ui/BlogCard";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { ShareButtons } from "@/components/ui/ShareButtons";
@@ -20,6 +21,7 @@ type Props = { params: Promise<{ slug: string }> };
 export const revalidate = 300;
 
 export async function generateStaticParams() {
+  if (skipStaticGeneration) return [];
   const { posts } = await getPosts({ limit: 100 });
   return posts.map((p) => ({ slug: p.slug }));
 }

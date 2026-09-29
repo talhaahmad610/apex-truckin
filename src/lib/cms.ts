@@ -15,6 +15,7 @@ import type {
 import { getPayloadClient } from "./payload";
 import { richTextToHtml } from "./richtext";
 import { parseHeadHtml } from "./head-html";
+import { resolveMediaPath } from "./s3";
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -27,10 +28,10 @@ export function legsFromBlock(legs: FlightHeroBlock["legs"]): FlightLeg[] {
   return (legs ?? [])
     .filter((l): l is CmsFlightSource => isObj<CmsFlightSource>(l) && l.status === "ready" && Boolean(l.output?.desktop))
     .map((l) => ({
-      desktop: l.output!.desktop!,
-      mobile: l.output!.mobile!,
-      poster: l.output!.poster!,
-      posterMobile: l.output!.posterMobile!,
+      desktop: resolveMediaPath(l.output!.desktop!),
+      mobile: resolveMediaPath(l.output!.mobile!),
+      poster: resolveMediaPath(l.output!.poster!),
+      posterMobile: resolveMediaPath(l.output!.posterMobile!),
       duration: l.output!.duration ?? 8,
     }));
 }

@@ -1,7 +1,7 @@
 import { getFeaturedPosts } from "@/lib/cms";
 import { json } from "@/lib/http";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 /** GET /api/posts/featured — latest 3 published posts (homepage). */
 export async function GET() {
