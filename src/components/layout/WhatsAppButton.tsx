@@ -1,6 +1,6 @@
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
 
-export function WhatsAppButton({ href, name }: { href: string; name: string }) {
+export function WhatsAppButton({ href, name, tooltip }: { href: string; name: string; tooltip: string }) {
   return (
     <a
       href={href}
@@ -12,7 +12,7 @@ export function WhatsAppButton({ href, name }: { href: string; name: string }) {
       <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-[#25D366]/40 [animation-duration:2.4s]" />
       <WhatsAppIcon className="relative h-7 w-7" />
       <span className="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-full bg-[#0c0d13]/90 px-3 py-1.5 text-xs font-medium text-white opacity-0 ring-1 ring-white/10 transition-opacity duration-300 group-hover:opacity-100 md:block">
-        Talk to dispatch
+        {tooltip}
       </span>
     </a>
   );

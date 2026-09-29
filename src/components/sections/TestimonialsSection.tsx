@@ -11,7 +11,15 @@ import { Stars } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
-async function TestimonialGrid() {
+async function TestimonialGrid({
+  statLine,
+  statNote,
+  cta,
+}: {
+  statLine: string;
+  statNote: string;
+  cta: { label?: string | null; href?: string | null };
+}) {
   const items = await getTestimonials();
   const avg = items.length ? items.reduce((a, t) => a + t.rating, 0) / items.length : 4.9;
   return (
@@ -35,11 +43,11 @@ async function TestimonialGrid() {
             <p className="font-display text-7xl font-bold leading-none text-gradient">{Math.min(avg, 4.9).toFixed(1)}★</p>
             <div>
               <Stars rating={5} />
-              <p className="mt-2 font-display text-2xl font-bold uppercase tracking-wide">Average carrier satisfaction</p>
-              <p className="text-sm text-muted">Based on verified reviews from owner-operators and fleets we dispatch.</p>
+              <p className="mt-2 font-display text-2xl font-bold uppercase tracking-wide">{statLine}</p>
+              <p className="text-sm text-muted">{statNote}</p>
             </div>
           </div>
-          <Button href="/contact">Join Them</Button>
+          <Button href={cta.href || "/contact"}>{cta.label || "Join Them"}</Button>
         </div>
       </Reveal>
     </>
@@ -51,12 +59,18 @@ export function TestimonialsSection({
   label = "Carrier voice",
   heading = "Real drivers.",
   highlight = "Real results.",
+  statLine = "Average carrier satisfaction",
+  statNote = "Based on verified reviews from owner-operators and fleets we dispatch.",
+  cta = { label: "Join Them", href: "/contact" },
   site,
 }: {
   n?: string;
   label?: string;
   heading?: string;
   highlight?: string | null;
+  statLine?: string;
+  statNote?: string;
+  cta?: { label?: string | null; href?: string | null };
   site: SiteInfo;
 }) {
   return (
@@ -84,7 +98,7 @@ export function TestimonialsSection({
             </div>
           }
         >
-          <TestimonialGrid />
+          <TestimonialGrid statLine={statLine} statNote={statNote} cta={cta} />
         </Suspense>
       </div>
     </RevealWrapper>

@@ -8,6 +8,11 @@ export const dynamic = "force-dynamic";
 
 const THANKS = "Thanks! A dispatcher will reach out within 1 business hour.";
 
+async function successMessage(payload: Awaited<ReturnType<typeof getPayloadClient>>): Promise<string> {
+  const notifications = await payload.findGlobal({ slug: "notifications", overrideAccess: true, depth: 0 });
+  return notifications.contactSuccessMessage || THANKS;
+}
+
 function sourceFromPath(path: string): "home" | "contact" | "service" | "other" {
   if (path === "/") return "home";
   if (path === "/contact") return "contact";
@@ -24,14 +29,15 @@ export async function POST(req: NextRequest) {
   if (!result.success) return error(422, "Validation failed", zodDetails(result.error));
 
   const { company_website, source_path, ...v } = result.data;
+  const payload = await getPayloadClient();
+
   // Honeypot filled → pretend success, store nothing.
-  if (company_website) return json({ message: THANKS }, 201);
+  if (company_website) return json({ message: await successMessage(payload) }, 201);
 
   const path = source_path || "/";
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || null;
 
   try {
-    const payload = await getPayloadClient();
     const lead = await payload.create({
       collection: "leads",
       overrideAccess: true, // public submissions are validated above; the collection itself is admin-only
@@ -62,7 +68,7 @@ export async function POST(req: NextRequest) {
       }),
     );
 
-    return json({ message: THANKS, stored: true }, 201);
+    return json({ message: await successMessage(payload), stored: true }, 201);
   } catch (err) {
     console.error("[contact] failed to save lead", err);
     return error(500, "Failed to save your message");

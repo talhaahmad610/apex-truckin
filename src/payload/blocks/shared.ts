@@ -97,6 +97,19 @@ export const PricingCompare: Block = defineBlock("pricingCompare", { singular: "
 export const Testimonials: Block = defineBlock("testimonials", { singular: "Testimonials" }, [
   ...sectionFraming({ label: "Carrier voice" }),
   ...gradientHeading(),
+  {
+    name: "statLine",
+    type: "text",
+    maxLength: 60,
+    defaultValue: "Average carrier satisfaction",
+  },
+  {
+    name: "statNote",
+    type: "text",
+    maxLength: 160,
+    defaultValue: "Based on verified reviews from owner-operators and fleets we dispatch.",
+  },
+  ctaGroup("cta", "Button", { label: "Join Them", href: "/contact" }),
 ]);
 
 export const Faq: Block = defineBlock("faq", { singular: "FAQ" }, [
@@ -126,6 +139,7 @@ export const CtaBanner: Block = defineBlock("ctaBanner", { singular: "CTA banner
   ...gradientHeading({ headingLabel: "Heading" }),
   bodyField({ maxLength: 300 }),
   { name: "truck", label: "Show the truck illustration", type: "checkbox", defaultValue: true },
+  ctaGroup("cta", "Button", { label: "Start Dispatching", href: "/contact" }),
 ]);
 
 export const ContactBlock: Block = defineBlock("contact", { singular: "Contact" }, [
@@ -135,6 +149,7 @@ export const ContactBlock: Block = defineBlock("contact", { singular: "Contact" 
   { name: "formHeading", type: "text", maxLength: 60, defaultValue: "Start dispatching" },
   { name: "statusLine", type: "text", maxLength: 60, admin: { description: "Section style only, e.g. \"Dispatch desk online now\"." } },
   { name: "replyNote", type: "text", maxLength: 60, admin: { description: "Section style only, e.g. \"Avg. reply < 1 hr\"." } },
+  { name: "methodsLabel", label: "WhatsApp method label", type: "text", maxLength: 40, defaultValue: "Message a dispatcher" },
   {
     name: "style",
     type: "select",

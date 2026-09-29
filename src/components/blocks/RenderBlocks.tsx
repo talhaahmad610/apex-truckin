@@ -229,7 +229,19 @@ export async function RenderBlocks({ blocks, ctx }: { blocks: LayoutBlock[]; ctx
           );
 
         case "testimonials":
-          return <TestimonialsSection key={block.id} n={n} label={label} heading={block.heading} highlight={block.highlight} site={site} />;
+          return (
+            <TestimonialsSection
+              key={block.id}
+              n={n}
+              label={label}
+              heading={block.heading}
+              highlight={block.highlight}
+              statLine={block.statLine ?? undefined}
+              statNote={block.statNote ?? undefined}
+              cta={block.cta}
+              site={site}
+            />
+          );
 
         case "faq": {
           let items: FAQ[];
@@ -268,6 +280,7 @@ export async function RenderBlocks({ blocks, ctx }: { blocks: LayoutBlock[]; ctx
               }
               body={block.body ?? undefined}
               truck={block.truck ?? true}
+              cta={block.cta}
             />
           );
 
@@ -283,6 +296,7 @@ export async function RenderBlocks({ blocks, ctx }: { blocks: LayoutBlock[]; ctx
               formHeading={block.formHeading}
               statusLine={block.statusLine}
               replyNote={block.replyNote}
+              methodsLabel={block.methodsLabel}
               style={block.style ?? "section"}
               site={site}
             />

@@ -12,10 +12,12 @@ export async function CTABannerSection({
   ),
   body = "Get a free lane review and your first load booked within 24 hours. No contracts. No forced dispatch.",
   truck = true,
+  cta = { label: "Start Dispatching", href: "/contact" },
 }: {
   title?: React.ReactNode;
   body?: string;
   truck?: boolean;
+  cta?: { label?: string | null; href?: string | null };
 }) {
   const COMPANY = await getSiteSettings();
   return (
@@ -31,7 +33,7 @@ export async function CTABannerSection({
           </h2>
           <p data-reveal="up" className="mt-6 max-w-lg text-lg text-white/75">{body}</p>
           <div data-reveal="up" className="mt-10 flex flex-wrap items-center gap-4">
-            <Button href="/contact" size="lg">Start Dispatching</Button>
+            <Button href={cta.href || "/contact"} size="lg">{cta.label || "Start Dispatching"}</Button>
             <a href={COMPANY.phoneHref} className="text-sm font-semibold uppercase tracking-[0.16em] text-white/80 underline-offset-4 hover:text-amber hover:underline">
               or call {COMPANY.phone}
             </a>

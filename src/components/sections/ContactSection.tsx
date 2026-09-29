@@ -1,17 +1,13 @@
-import { Clock3, Mail, MapPin, Phone } from "lucide-react";
-import { getEquipmentTypes, getSiteSettings } from "@/lib/cms";
-import { ContactForm } from "@/components/forms/ContactForm";
-import { RevealWrapper } from "@/components/ui/RevealWrapper";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Mail, MapPin, Phone } from "lucide-react";
+import { getSiteSettings } from "@/lib/cms";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
-import { LiveDot } from "@/components/ui/Card";
 
-export async function ContactMethods() {
+export async function ContactMethods({ whatsappLabel = "Message a dispatcher" }: { whatsappLabel?: string } = {}) {
   const COMPANY = await getSiteSettings();
   const methods = [
     { icon: <Phone className="h-5 w-5" strokeWidth={1.25} />, label: "Call dispatch", value: COMPANY.phone, href: COMPANY.phoneHref },
     { icon: <Mail className="h-5 w-5" strokeWidth={1.25} />, label: "Email", value: COMPANY.email, href: `mailto:${COMPANY.email}` },
-    { icon: <WhatsAppIcon className="h-5 w-5" />, label: "WhatsApp", value: "Message a dispatcher", href: COMPANY.whatsapp, external: true },
+    { icon: <WhatsAppIcon className="h-5 w-5" />, label: "WhatsApp", value: whatsappLabel, href: COMPANY.whatsapp, external: true },
   ];
   return (
     <ul className="space-y-3">
@@ -50,42 +46,5 @@ export async function MapEmbed() {
         <MapPin className="h-3.5 w-3.5 text-amber" strokeWidth={1.5} /> {COMPANY.address.city}, {COMPANY.address.region} HQ
       </div>
     </div>
-  );
-}
-
-export async function ContactSection() {
-  const equipmentTypes = await getEquipmentTypes();
-  return (
-    <RevealWrapper as="section" id="contact" className="relative py-24 md:py-40">
-      <div className="mx-auto grid max-w-[1320px] gap-12 px-4 sm:px-8 lg:grid-cols-12">
-        <div className="lg:col-span-5">
-          <SectionLabel n="07" label="Contact" />
-          <h2 data-reveal="up" className="mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-bold uppercase leading-[0.92]">
-            Talk to a <span className="text-gradient">real dispatcher.</span>
-          </h2>
-          <p data-reveal="up" className="mt-5 max-w-md text-muted">
-            Tell us about your truck and lanes. We&apos;ll send back a free lane review with the rates you should be getting.
-          </p>
-          <p data-reveal="up" className="mt-6 inline-flex items-center gap-2.5 text-sm text-white/80">
-            <LiveDot /> Dispatch desk online now
-            <Clock3 className="ml-2 h-4 w-4 text-white/40" strokeWidth={1.25} />
-            <span className="text-white/50">Avg. reply &lt; 1 hr</span>
-          </p>
-          <div data-reveal="up" className="mt-8">
-            <ContactMethods />
-          </div>
-          <div data-reveal="up" className="mt-6">
-            <MapEmbed />
-          </div>
-        </div>
-        <div data-reveal="up" className="lg:col-span-7">
-          <div className="bezel">
-            <div className="bezel-core relative p-6 sm:p-10">
-              <ContactForm equipmentTypes={equipmentTypes} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </RevealWrapper>
   );
 }

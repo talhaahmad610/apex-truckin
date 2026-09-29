@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 import { getFaqs, getPricingTiers, getServiceBySlug, getServices, getSiteContent, getSiteSettings } from "@/lib/cms";
 import { faqLd, pageMetadata, serviceLd } from "@/lib/seo";
+import { fillTokens } from "@/lib/tokens";
 import { PageHero } from "@/components/sections/PageHero";
 import { PricingSection } from "@/components/sections/PricingSection";
 import { CTABannerSection } from "@/components/sections/CTABannerSection";
@@ -17,6 +18,8 @@ import { TiltCard } from "@/components/3d/TiltCard";
 import { StepsSection } from "@/components/blocks/StepsSection";
 
 type Props = { params: Promise<{ slug: string }> };
+
+export const revalidate = 300;
 
 // Pre-render every service that exists at build time; services added later in the CMS render on
 // first request (and are cached) instead of 404ing.
@@ -48,6 +51,9 @@ export default async function ServicePage({ params }: Props) {
   const name = s.name.toLowerCase();
   const fill = (t: string) => t.replaceAll("{service}", name).replaceAll("{avgRate}", s.avgRate).replaceAll("{weeklyGross}", s.weeklyGross);
   const faqs = [...s.faqs, ...sharedFaqs.map((f) => ({ q: fill(f.q), a: fill(f.a) }))];
+  const svc = content.servicePage;
+  const tokens = { service: name, Service: s.name };
+  const fillSvc = (t: string) => fillTokens(t, site, tokens);
 
   return (
     <>
@@ -67,7 +73,7 @@ export default async function ServicePage({ params }: Props) {
         ]}
       >
         <div className="flex flex-wrap items-center gap-4">
-          <Button href="/contact" size="lg">Dispatch My {s.name}</Button>
+          <Button href={svc.heroCta.href || "/contact"} size="lg">{fillSvc(svc.heroCta.label || "Dispatch My {{Service}}")}</Button>
           <span className="rounded-full border border-line bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber">Avg. {s.avgRate}</span>
           <span className="rounded-full border border-line bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber">Est. {s.weeklyGross} / week</span>
         </div>
@@ -128,9 +134,9 @@ export default async function ServicePage({ params }: Props) {
         <Image src={s.image} alt="" fill sizes="100vw" className="-z-20 object-cover opacity-20" />
         <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-bg via-bg/80 to-bg" />
         <div className="mx-auto max-w-[1320px] px-4 sm:px-8">
-          <SectionLabel n="02" label="Benefits" />
+          <SectionLabel n="02" label={svc.benefitsLabel} />
           <h2 data-reveal="up" className="mb-12 mt-6 font-display text-[clamp(2.25rem,5vw,4.5rem)] font-bold uppercase leading-[0.92]">
-            Why carriers run {s.name.toLowerCase()} <span className="text-gradient">with Apex</span>
+            {fillSvc(svc.benefitsHeading)} <span className="text-gradient">{fillSvc(svc.benefitsHighlight)}</span>
           </h2>
           <ul data-stagger-group className="grid gap-5 md:grid-cols-3">
             {s.benefits.map((b, i) => (
@@ -164,9 +170,9 @@ export default async function ServicePage({ params }: Props) {
       <PricingSection
         n="04"
         label="Pricing"
-        heading="Straight rates."
-        highlight="No surprises."
-        intro="No contracts, no setup fees, no forced dispatch. Pick the plan that fits your fleet today — switch anytime."
+        heading={svc.pricingHeading}
+        highlight={svc.pricingHighlight}
+        intro={svc.pricingIntro}
         site={site}
       />
 
@@ -200,7 +206,7 @@ export default async function ServicePage({ params }: Props) {
       <CTABannerSection
         title={
           <>
-            Put your {s.name.toLowerCase()} <span className="text-gradient">to work.</span>
+            {fillSvc(svc.ctaHeading)} <span className="text-gradient">{fillSvc(svc.ctaHighlight)}</span>
           </>
         }
       />

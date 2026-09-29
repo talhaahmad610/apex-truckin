@@ -727,6 +727,15 @@ export interface TestimonialsBlock {
    * Optional plain words after the highlighted ones.
    */
   tail?: string | null;
+  statLine?: string | null;
+  statNote?: string | null;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'testimonials';
@@ -840,6 +849,13 @@ export interface CtaBannerBlock {
   tail?: string | null;
   body?: string | null;
   truck?: boolean | null;
+  cta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'ctaBanner';
@@ -877,6 +893,7 @@ export interface ContactBlock {
    * Section style only, e.g. "Avg. reply < 1 hr".
    */
   replyNote?: string | null;
+  methodsLabel?: string | null;
   style?: ('section' | 'page') | null;
   id?: string | null;
   blockName?: string | null;
@@ -2080,6 +2097,14 @@ export interface TestimonialsBlockSelect<T extends boolean = true> {
   heading?: T;
   highlight?: T;
   tail?: T;
+  statLine?: T;
+  statNote?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -2132,6 +2157,12 @@ export interface CtaBannerBlockSelect<T extends boolean = true> {
   tail?: T;
   body?: T;
   truck?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -2150,6 +2181,7 @@ export interface ContactBlockSelect<T extends boolean = true> {
   formHeading?: T;
   statusLine?: T;
   replyNote?: T;
+  methodsLabel?: T;
   style?: T;
   id?: T;
   blockName?: T;
@@ -2524,6 +2556,21 @@ export interface SiteSetting {
    * Publishes round-the-clock opening hours in Google's structured data. Turn off if the dispatch desk has set hours.
    */
   open24x7?: boolean | null;
+  headerCta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  menuCta?: {
+    label?: string | null;
+    /**
+     * A page path like /contact, or a full https:// URL.
+     */
+    href?: string | null;
+  };
+  whatsappTooltip?: string | null;
   rateDisclaimer: string;
   grossDisclaimer: string;
   /**
@@ -2662,6 +2709,50 @@ export interface SiteContent {
         id?: string | null;
       }[]
     | null;
+  blogIndex?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    /**
+     * Shown in the orange gradient.
+     */
+    highlight?: string | null;
+    subtitle?: string | null;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ldName?: string | null;
+    ldDescription?: string | null;
+  };
+  blogSidebar?: {
+    heading?: string | null;
+    body?: string | null;
+    cta?: {
+      label?: string | null;
+      /**
+       * A page path like /contact, or a full https:// URL.
+       */
+      href?: string | null;
+    };
+  };
+  /**
+   * {{service}} = the service name lowercase ("dry van"); {{Service}} = as titled ("Dry Van").
+   */
+  servicePage?: {
+    heroCta?: {
+      label?: string | null;
+      /**
+       * A page path like /contact, or a full https:// URL.
+       */
+      href?: string | null;
+    };
+    benefitsLabel?: string | null;
+    benefitsHighlight?: string | null;
+    benefitsHeading?: string | null;
+    pricingHeading?: string | null;
+    pricingHighlight?: string | null;
+    pricingIntro?: string | null;
+    ctaHeading?: string | null;
+    ctaHighlight?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2725,6 +2816,10 @@ export interface HomePage {
 export interface Notification {
   id: number;
   /**
+   * Shown as the confirmation toast after a visitor submits the contact form.
+   */
+  contactSuccessMessage?: string | null;
+  /**
    * Everyone listed gets an email the moment a contact form is submitted.
    */
   leadAlertRecipients?:
@@ -2784,6 +2879,19 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         x?: T;
       };
   open24x7?: T;
+  headerCta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  menuCta?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  whatsappTooltip?: T;
   rateDisclaimer?: T;
   grossDisclaimer?: T;
   headHtml?: T;
@@ -2868,6 +2976,48 @@ export interface SiteContentSelect<T extends boolean = true> {
               id?: T;
             };
         id?: T;
+      };
+  blogIndex?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        highlight?: T;
+        subtitle?: T;
+        metaTitle?: T;
+        metaDescription?: T;
+        ldName?: T;
+        ldDescription?: T;
+      };
+  blogSidebar?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        cta?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+            };
+      };
+  servicePage?:
+    | T
+    | {
+        heroCta?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+            };
+        benefitsLabel?: T;
+        benefitsHighlight?: T;
+        benefitsHeading?: T;
+        pricingHeading?: T;
+        pricingHighlight?: T;
+        pricingIntro?: T;
+        ctaHeading?: T;
+        ctaHighlight?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -3004,6 +3154,7 @@ export interface CoverageMapBlockSelect<T extends boolean = true> {
  * via the `definition` "notifications_select".
  */
 export interface NotificationsSelect<T extends boolean = true> {
+  contactSuccessMessage?: T;
   leadAlertRecipients?:
     | T
     | {

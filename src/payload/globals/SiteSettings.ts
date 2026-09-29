@@ -1,6 +1,7 @@
 import type { GlobalConfig } from "payload";
 import { isAdmin } from "../access";
 import { revalidate } from "../hooks/revalidate";
+import { ctaGroup } from "../blocks/_shared";
 
 /**
  * Company details, navigation and footer copy shared by every page. Every field defaults to the
@@ -129,6 +130,21 @@ export const SiteSettings: GlobalConfig = {
               type: "checkbox",
               defaultValue: true,
               admin: { description: "Publishes round-the-clock opening hours in Google's structured data. Turn off if the dispatch desk has set hours." },
+            },
+          ],
+        },
+        {
+          label: "Buttons",
+          description: "The header, mobile-menu and WhatsApp button copy shown on every page.",
+          fields: [
+            ctaGroup("headerCta", "Header button (desktop nav)", { label: "Get Started", href: "/contact" }),
+            ctaGroup("menuCta", "Mobile menu button", { label: "Start Dispatching", href: "/contact" }),
+            {
+              name: "whatsappTooltip",
+              label: "WhatsApp button tooltip",
+              type: "text",
+              maxLength: 60,
+              defaultValue: "Talk to dispatch",
             },
           ],
         },

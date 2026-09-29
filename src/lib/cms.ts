@@ -186,6 +186,9 @@ export const getSiteSettings = unstable_cache(
       },
       open24x7: s.open24x7 ?? true,
       nav: (s.nav ?? []).map((n) => ({ label: n.label, href: n.href })),
+      headerCta: { label: s.headerCta?.label || "Get Started", href: s.headerCta?.href || "/contact" },
+      menuCta: { label: s.menuCta?.label || "Start Dispatching", href: s.menuCta?.href || "/contact" },
+      whatsappTooltip: s.whatsappTooltip || "Talk to dispatch",
       footer: {
         headline: s.footerHeadline,
         highlight: s.footerHighlight ?? "",
@@ -339,6 +342,37 @@ export const getSiteContent = unstable_cache(
           text: cell.text ?? "",
         })),
       })),
+      blogIndex: {
+        eyebrow: c.blogIndex?.eyebrow || "Insights",
+        heading: c.blogIndex?.heading || "Dispatch",
+        highlight: c.blogIndex?.highlight || "insights",
+        subtitle:
+          c.blogIndex?.subtitle ||
+          "Rate trends, lane strategy, broker negotiation and the regulations that matter — written by dispatchers who work the boards every day.",
+        metaTitle: c.blogIndex?.metaTitle || "Truck Dispatch Blog — Rates, Lanes & Owner-Operator Tips",
+        metaDescription:
+          c.blogIndex?.metaDescription ||
+          "Practical truck dispatch insights: how to find better-paying loads, negotiate with brokers, cut deadhead, and grow your owner-operator business.",
+        ldName: c.blogIndex?.ldName || "Truck Dispatch Blog",
+        ldDescription: c.blogIndex?.ldDescription || "Rate trends, lane strategy, broker negotiation and regulations for owner-operators and fleets.",
+      },
+      blogSidebar: {
+        heading: c.blogSidebar?.heading || "Want better rates?",
+        body: c.blogSidebar?.body || "Get a free lane review from a dispatcher.",
+        cta: { label: c.blogSidebar?.cta?.label || "Talk to dispatch", href: c.blogSidebar?.cta?.href || "/contact" },
+      },
+      servicePage: {
+        heroCta: { label: c.servicePage?.heroCta?.label || "Dispatch My {{Service}}", href: c.servicePage?.heroCta?.href || "/contact" },
+        benefitsLabel: c.servicePage?.benefitsLabel || "Benefits",
+        benefitsHeading: c.servicePage?.benefitsHeading || "Why carriers run {{service}}",
+        benefitsHighlight: c.servicePage?.benefitsHighlight || "with Apex",
+        pricingHeading: c.servicePage?.pricingHeading || "Straight rates.",
+        pricingHighlight: c.servicePage?.pricingHighlight || "No surprises.",
+        pricingIntro:
+          c.servicePage?.pricingIntro || "No contracts, no setup fees, no forced dispatch. Pick the plan that fits your fleet today — switch anytime.",
+        ctaHeading: c.servicePage?.ctaHeading || "Put your {{service}}",
+        ctaHighlight: c.servicePage?.ctaHighlight || "to work.",
+      },
     };
   },
   ["cms:site-content"],

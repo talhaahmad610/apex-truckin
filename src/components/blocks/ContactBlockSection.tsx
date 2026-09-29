@@ -18,6 +18,7 @@ export async function ContactBlockSection({
   formHeading = "Start dispatching",
   statusLine,
   replyNote,
+  methodsLabel = "Message a dispatcher",
   style,
   site,
 }: {
@@ -29,6 +30,7 @@ export async function ContactBlockSection({
   formHeading?: string | null;
   statusLine?: string | null;
   replyNote?: string | null;
+  methodsLabel?: string | null;
   style: "section" | "page";
   site: SiteInfo;
 }) {
@@ -48,7 +50,7 @@ export async function ContactBlockSection({
           </div>
           <div className="space-y-6 lg:col-span-5">
             <div data-reveal="up">
-              <ContactMethods />
+              <ContactMethods whatsappLabel={methodsLabel ?? undefined} />
             </div>
             <div data-reveal="up" className="bezel">
               <div className="bezel-core p-7">
@@ -106,7 +108,7 @@ export async function ContactBlockSection({
             </p>
           )}
           <div data-reveal="up" className="mt-8">
-            <ContactMethods />
+            <ContactMethods whatsappLabel={methodsLabel ?? undefined} />
           </div>
           <div data-reveal="up" className="mt-6">
             <MapEmbed />

@@ -7,12 +7,12 @@ export default async function MarketingLayout({ children }: { children: React.Re
   const site = await getSiteSettings();
   return (
     <>
-      <Navbar site={{ name: site.name, nav: site.nav, phone: site.phone, phoneHref: site.phoneHref, whatsapp: site.whatsapp }} />
+      <Navbar site={{ name: site.name, nav: site.nav, phone: site.phone, phoneHref: site.phoneHref, whatsapp: site.whatsapp, headerCta: site.headerCta, menuCta: site.menuCta, whatsappTooltip: site.whatsappTooltip }} />
       <main id="main" tabIndex={-1} className="outline-none">
         {children}
       </main>
       <Footer />
-      <WhatsAppButton href={site.whatsapp} name={site.name} />
+      <WhatsAppButton href={site.whatsapp} name={site.name} tooltip={site.whatsappTooltip} />
     </>
   );
 }

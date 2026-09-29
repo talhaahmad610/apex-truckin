@@ -63,7 +63,7 @@ export function ContactForm({ className, equipmentTypes }: { className?: string;
       });
       const data = (await res.json()) as { message?: string; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Something went wrong");
-      toast.success("Message received", { description: "A dispatcher will reach out within 1 business hour." });
+      toast.success("Message received", { description: data.message || "A dispatcher will reach out within 1 business hour." });
       reset();
     } catch (err) {
       toast.error("Couldn't send your message", { description: `${(err as Error).message}. Call us any time instead.` });

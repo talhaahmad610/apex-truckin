@@ -1,0 +1,121 @@
+import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
+
+export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+  await db.execute(sql`
+   ALTER TABLE "pages_blocks_testimonials" ADD COLUMN "stat_line" varchar DEFAULT 'Average carrier satisfaction';
+  ALTER TABLE "pages_blocks_testimonials" ADD COLUMN "stat_note" varchar DEFAULT 'Based on verified reviews from owner-operators and fleets we dispatch.';
+  ALTER TABLE "pages_blocks_testimonials" ADD COLUMN "cta_label" varchar DEFAULT 'Join Them';
+  ALTER TABLE "pages_blocks_testimonials" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "pages_blocks_cta_banner" ADD COLUMN "cta_label" varchar DEFAULT 'Start Dispatching';
+  ALTER TABLE "pages_blocks_cta_banner" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "pages_blocks_contact" ADD COLUMN "methods_label" varchar DEFAULT 'Message a dispatcher';
+  ALTER TABLE "_pages_v_blocks_testimonials" ADD COLUMN "stat_line" varchar DEFAULT 'Average carrier satisfaction';
+  ALTER TABLE "_pages_v_blocks_testimonials" ADD COLUMN "stat_note" varchar DEFAULT 'Based on verified reviews from owner-operators and fleets we dispatch.';
+  ALTER TABLE "_pages_v_blocks_testimonials" ADD COLUMN "cta_label" varchar DEFAULT 'Join Them';
+  ALTER TABLE "_pages_v_blocks_testimonials" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "_pages_v_blocks_cta_banner" ADD COLUMN "cta_label" varchar DEFAULT 'Start Dispatching';
+  ALTER TABLE "_pages_v_blocks_cta_banner" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "_pages_v_blocks_contact" ADD COLUMN "methods_label" varchar DEFAULT 'Message a dispatcher';
+  ALTER TABLE "site_settings" ADD COLUMN "header_cta_label" varchar DEFAULT 'Get Started';
+  ALTER TABLE "site_settings" ADD COLUMN "header_cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "site_settings" ADD COLUMN "menu_cta_label" varchar DEFAULT 'Start Dispatching';
+  ALTER TABLE "site_settings" ADD COLUMN "menu_cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "site_settings" ADD COLUMN "whatsapp_tooltip" varchar DEFAULT 'Talk to dispatch';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_eyebrow" varchar DEFAULT 'Insights';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_heading" varchar DEFAULT 'Dispatch';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_highlight" varchar DEFAULT 'insights';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_subtitle" varchar DEFAULT 'Rate trends, lane strategy, broker negotiation and the regulations that matter — written by dispatchers who work the boards every day.';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_meta_title" varchar DEFAULT 'Truck Dispatch Blog — Rates, Lanes & Owner-Operator Tips';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_meta_description" varchar DEFAULT 'Practical truck dispatch insights: how to find better-paying loads, negotiate with brokers, cut deadhead, and grow your owner-operator business.';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_ld_name" varchar DEFAULT 'Truck Dispatch Blog';
+  ALTER TABLE "site_content" ADD COLUMN "blog_index_ld_description" varchar DEFAULT 'Rate trends, lane strategy, broker negotiation and regulations for owner-operators and fleets.';
+  ALTER TABLE "site_content" ADD COLUMN "blog_sidebar_heading" varchar DEFAULT 'Want better rates?';
+  ALTER TABLE "site_content" ADD COLUMN "blog_sidebar_body" varchar DEFAULT 'Get a free lane review from a dispatcher.';
+  ALTER TABLE "site_content" ADD COLUMN "blog_sidebar_cta_label" varchar DEFAULT 'Talk to dispatch';
+  ALTER TABLE "site_content" ADD COLUMN "blog_sidebar_cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_hero_cta_label" varchar DEFAULT 'Dispatch My {{Service}}';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_hero_cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_benefits_label" varchar DEFAULT 'Benefits';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_benefits_highlight" varchar DEFAULT 'with Apex';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_benefits_heading" varchar DEFAULT 'Why carriers run {{service}}';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_pricing_heading" varchar DEFAULT 'Straight rates.';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_pricing_highlight" varchar DEFAULT 'No surprises.';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_pricing_intro" varchar DEFAULT 'No contracts, no setup fees, no forced dispatch. Pick the plan that fits your fleet today — switch anytime.';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_cta_heading" varchar DEFAULT 'Put your {{service}}';
+  ALTER TABLE "site_content" ADD COLUMN "service_page_cta_highlight" varchar DEFAULT 'to work.';
+  ALTER TABLE "home_page_blocks_testimonials" ADD COLUMN "stat_line" varchar DEFAULT 'Average carrier satisfaction';
+  ALTER TABLE "home_page_blocks_testimonials" ADD COLUMN "stat_note" varchar DEFAULT 'Based on verified reviews from owner-operators and fleets we dispatch.';
+  ALTER TABLE "home_page_blocks_testimonials" ADD COLUMN "cta_label" varchar DEFAULT 'Join Them';
+  ALTER TABLE "home_page_blocks_testimonials" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "home_page_blocks_cta_banner" ADD COLUMN "cta_label" varchar DEFAULT 'Start Dispatching';
+  ALTER TABLE "home_page_blocks_cta_banner" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "home_page_blocks_contact" ADD COLUMN "methods_label" varchar DEFAULT 'Message a dispatcher';
+  ALTER TABLE "_home_page_v_blocks_testimonials" ADD COLUMN "stat_line" varchar DEFAULT 'Average carrier satisfaction';
+  ALTER TABLE "_home_page_v_blocks_testimonials" ADD COLUMN "stat_note" varchar DEFAULT 'Based on verified reviews from owner-operators and fleets we dispatch.';
+  ALTER TABLE "_home_page_v_blocks_testimonials" ADD COLUMN "cta_label" varchar DEFAULT 'Join Them';
+  ALTER TABLE "_home_page_v_blocks_testimonials" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "_home_page_v_blocks_cta_banner" ADD COLUMN "cta_label" varchar DEFAULT 'Start Dispatching';
+  ALTER TABLE "_home_page_v_blocks_cta_banner" ADD COLUMN "cta_href" varchar DEFAULT '/contact';
+  ALTER TABLE "_home_page_v_blocks_contact" ADD COLUMN "methods_label" varchar DEFAULT 'Message a dispatcher';
+  ALTER TABLE "notifications" ADD COLUMN "contact_success_message" varchar DEFAULT 'Thanks! A dispatcher will reach out within 1 business hour.';`)
+}
+
+export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+  await db.execute(sql`
+   ALTER TABLE "pages_blocks_testimonials" DROP COLUMN "stat_line";
+  ALTER TABLE "pages_blocks_testimonials" DROP COLUMN "stat_note";
+  ALTER TABLE "pages_blocks_testimonials" DROP COLUMN "cta_label";
+  ALTER TABLE "pages_blocks_testimonials" DROP COLUMN "cta_href";
+  ALTER TABLE "pages_blocks_cta_banner" DROP COLUMN "cta_label";
+  ALTER TABLE "pages_blocks_cta_banner" DROP COLUMN "cta_href";
+  ALTER TABLE "pages_blocks_contact" DROP COLUMN "methods_label";
+  ALTER TABLE "_pages_v_blocks_testimonials" DROP COLUMN "stat_line";
+  ALTER TABLE "_pages_v_blocks_testimonials" DROP COLUMN "stat_note";
+  ALTER TABLE "_pages_v_blocks_testimonials" DROP COLUMN "cta_label";
+  ALTER TABLE "_pages_v_blocks_testimonials" DROP COLUMN "cta_href";
+  ALTER TABLE "_pages_v_blocks_cta_banner" DROP COLUMN "cta_label";
+  ALTER TABLE "_pages_v_blocks_cta_banner" DROP COLUMN "cta_href";
+  ALTER TABLE "_pages_v_blocks_contact" DROP COLUMN "methods_label";
+  ALTER TABLE "site_settings" DROP COLUMN "header_cta_label";
+  ALTER TABLE "site_settings" DROP COLUMN "header_cta_href";
+  ALTER TABLE "site_settings" DROP COLUMN "menu_cta_label";
+  ALTER TABLE "site_settings" DROP COLUMN "menu_cta_href";
+  ALTER TABLE "site_settings" DROP COLUMN "whatsapp_tooltip";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_eyebrow";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_heading";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_highlight";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_subtitle";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_meta_title";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_meta_description";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_ld_name";
+  ALTER TABLE "site_content" DROP COLUMN "blog_index_ld_description";
+  ALTER TABLE "site_content" DROP COLUMN "blog_sidebar_heading";
+  ALTER TABLE "site_content" DROP COLUMN "blog_sidebar_body";
+  ALTER TABLE "site_content" DROP COLUMN "blog_sidebar_cta_label";
+  ALTER TABLE "site_content" DROP COLUMN "blog_sidebar_cta_href";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_hero_cta_label";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_hero_cta_href";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_benefits_label";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_benefits_highlight";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_benefits_heading";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_pricing_heading";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_pricing_highlight";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_pricing_intro";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_cta_heading";
+  ALTER TABLE "site_content" DROP COLUMN "service_page_cta_highlight";
+  ALTER TABLE "home_page_blocks_testimonials" DROP COLUMN "stat_line";
+  ALTER TABLE "home_page_blocks_testimonials" DROP COLUMN "stat_note";
+  ALTER TABLE "home_page_blocks_testimonials" DROP COLUMN "cta_label";
+  ALTER TABLE "home_page_blocks_testimonials" DROP COLUMN "cta_href";
+  ALTER TABLE "home_page_blocks_cta_banner" DROP COLUMN "cta_label";
+  ALTER TABLE "home_page_blocks_cta_banner" DROP COLUMN "cta_href";
+  ALTER TABLE "home_page_blocks_contact" DROP COLUMN "methods_label";
+  ALTER TABLE "_home_page_v_blocks_testimonials" DROP COLUMN "stat_line";
+  ALTER TABLE "_home_page_v_blocks_testimonials" DROP COLUMN "stat_note";
+  ALTER TABLE "_home_page_v_blocks_testimonials" DROP COLUMN "cta_label";
+  ALTER TABLE "_home_page_v_blocks_testimonials" DROP COLUMN "cta_href";
+  ALTER TABLE "_home_page_v_blocks_cta_banner" DROP COLUMN "cta_label";
+  ALTER TABLE "_home_page_v_blocks_cta_banner" DROP COLUMN "cta_href";
+  ALTER TABLE "_home_page_v_blocks_contact" DROP COLUMN "methods_label";
+  ALTER TABLE "notifications" DROP COLUMN "contact_success_message";`)
+}

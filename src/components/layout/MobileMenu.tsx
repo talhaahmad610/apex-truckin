@@ -69,8 +69,8 @@ export function MobileMenu({ open, onClose, site }: { open: boolean; onClose: ()
             transition={{ duration: 0.6, ease, delay: 0.45 }}
             className="space-y-5"
           >
-            <Button href="/contact" size="lg" className="w-full justify-between" onClick={onClose}>
-              Start Dispatching
+            <Button href={site.menuCta.href} size="lg" className="w-full justify-between" onClick={onClose}>
+              {site.menuCta.label}
             </Button>
             <div className="flex items-center justify-between text-sm text-muted">
               <a href={site.phoneHref} className="hover:text-amber">{site.phone}</a>

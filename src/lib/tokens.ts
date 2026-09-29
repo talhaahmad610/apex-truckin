@@ -20,11 +20,29 @@ const TOKENS: Record<string, (site: SiteInfo) => string> = {
   postal: (s) => s.address.postal,
 };
 
-/** Replaces {{name}}, {{city}}, {{founded}}, etc. with live Site settings values. Unknown tokens are left as-is. */
-export function fillTokens(text: string | null | undefined, site: SiteInfo): string {
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+/**
+ * Replaces {{name}}, {{city}}, {{founded}}, etc. with live Site settings values. `extra` supplies
+ * page-local tokens not derived from Site settings (e.g. {{service}} on a service page) and is
+ * checked first, so it can't be shadowed by a same-named Site settings token. Unknown tokens are
+ * left as-is.
+ *
+ * `escape: true` HTML-escapes each substituted VALUE (not the surrounding template text) — for
+ * substituting admin-controlled Site settings values into a string that's about to be rendered as
+ * raw HTML (`dangerouslySetInnerHTML`), so a value like `Apex <b>Truckin</b>` can't inject markup.
+ */
+export function fillTokens(
+  text: string | null | undefined,
+  site: SiteInfo,
+  extra?: Record<string, string>,
+  opts?: { escape?: boolean },
+): string {
   if (!text) return "";
   return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, key: string) => {
-    const fn = TOKENS[key];
-    return fn ? fn(site) : match;
+    const value = extra && key in extra ? extra[key] : TOKENS[key]?.(site);
+    if (value === undefined) return match;
+    return opts?.escape ? escapeHtml(value) : value;
   });
 }

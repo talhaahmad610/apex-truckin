@@ -1,4 +1,4 @@
-import { getCategories, getPosts, getSiteSettings } from "@/lib/cms";
+import { getCategories, getPosts, getSiteContent, getSiteSettings } from "@/lib/cms";
 import { collectionLd, pageMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/sections/PageHero";
 import { BlogExplorer } from "@/components/sections/BlogExplorer";
@@ -10,15 +10,17 @@ import { JsonLd } from "@/components/ui/JsonLd";
 
 export const revalidate = 300;
 
-export const generateMetadata = () => pageMetadata({
-  title: "Truck Dispatch Blog — Rates, Lanes & Owner-Operator Tips",
-  description:
-    "Practical truck dispatch insights: how to find better-paying loads, negotiate with brokers, cut deadhead, and grow your owner-operator business.",
-  path: "/blog",
-});
+export const generateMetadata = async () => {
+  const content = await getSiteContent();
+  return pageMetadata({
+    title: content.blogIndex.metaTitle,
+    description: content.blogIndex.metaDescription,
+    path: "/blog",
+  });
+};
 
 export default async function BlogPage() {
-  const [{ posts }, categories, site] = await Promise.all([getPosts({ limit: 100 }), getCategories(), getSiteSettings()]);
+  const [{ posts }, categories, site, content] = await Promise.all([getPosts({ limit: 100 }), getCategories(), getSiteSettings(), getSiteContent()]);
   const [featured, ...rest] = posts;
 
   return (
@@ -26,20 +28,20 @@ export default async function BlogPage() {
       <JsonLd
         data={collectionLd({
           site,
-          name: "Truck Dispatch Blog",
-          description: "Rate trends, lane strategy, broker negotiation and regulations for owner-operators and fleets.",
+          name: content.blogIndex.ldName,
+          description: content.blogIndex.ldDescription,
           path: "/blog",
           items: posts.map((p) => ({ name: p.title, path: `/blog/${p.slug}`, image: p.cover_image_url ?? undefined })),
         })}
       />
       <PageHero
-        eyebrow="Insights"
+        eyebrow={content.blogIndex.eyebrow}
         title={
           <>
-            Dispatch <span className="text-gradient">insights</span>
+            {content.blogIndex.heading} <span className="text-gradient">{content.blogIndex.highlight}</span>
           </>
         }
-        subtitle="Rate trends, lane strategy, broker negotiation and the regulations that matter — written by dispatchers who work the boards every day."
+        subtitle={content.blogIndex.subtitle}
         crumbs={[{ name: "Blog", path: "/blog" }]}
         className="min-h-[60dvh]"
       />

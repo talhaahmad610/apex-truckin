@@ -58,7 +58,7 @@ export const bodyField = (opts: { label?: string; maxLength?: number; required?:
 });
 
 /** A single button: label + a page path or full URL. */
-export const ctaGroup = (name = "cta", label = "Button"): Field => ({
+export const ctaGroup = (name = "cta", label = "Button", defaults: { label?: string; href?: string } = {}): Field => ({
   name,
   label,
   type: "group",
@@ -66,10 +66,11 @@ export const ctaGroup = (name = "cta", label = "Button"): Field => ({
     {
       type: "row",
       fields: [
-        { name: "label", type: "text", maxLength: 40, admin: { width: "50%" } },
+        { name: "label", type: "text", maxLength: 40, defaultValue: defaults.label, admin: { width: "50%" } },
         {
           name: "href",
           type: "text",
+          defaultValue: defaults.href,
           admin: { width: "50%", description: "A page path like /contact, or a full https:// URL." },
           validate: (v: unknown) => (!v || (typeof v === "string" && /^(\/|https?:\/\/)/.test(v)) ? true : "Start with / or http(s)://"),
         },

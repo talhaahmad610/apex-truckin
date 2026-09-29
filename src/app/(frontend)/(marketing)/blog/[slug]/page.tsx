@@ -4,7 +4,7 @@ import Link from "next/link";
 import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, Clock3, UserRound } from "lucide-react";
-import { getPostBySlug, getPosts, getRelatedPosts, getSiteSettings } from "@/lib/cms";
+import { getPostBySlug, getPosts, getRelatedPosts, getSiteContent, getSiteSettings } from "@/lib/cms";
 import { articleLd, breadcrumbLd, pageMetadata } from "@/lib/seo";
 import { absoluteUrl, buildToc, formatDate } from "@/lib/utils";
 import { BlogCard } from "@/components/ui/BlogCard";
@@ -47,7 +47,7 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
   // HTML is generated server-side from the CMS rich-text JSON (text escaped, URLs sanitized).
   const { html, toc } = buildToc(post.content ?? "");
-  const [related, site] = await Promise.all([getRelatedPosts(post, 3), getSiteSettings()]);
+  const [related, site, content] = await Promise.all([getRelatedPosts(post, 3), getSiteSettings(), getSiteContent()]);
   const url = absoluteUrl(`/blog/${post.slug}`);
 
   return (
@@ -108,10 +108,10 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="sticky top-32 space-y-10">
               <TableOfContents items={toc} />
               <div className="rounded-2xl border border-line bg-amber/[0.04] p-5">
-                <p className="font-display text-xl font-bold uppercase">Want better rates?</p>
-                <p className="mt-2 text-sm text-muted">Get a free lane review from a dispatcher.</p>
-                <Link href="/contact" className="mt-4 inline-block text-xs font-semibold uppercase tracking-[0.18em] text-amber hover:underline">
-                  Talk to dispatch →
+                <p className="font-display text-xl font-bold uppercase">{content.blogSidebar.heading}</p>
+                <p className="mt-2 text-sm text-muted">{content.blogSidebar.body}</p>
+                <Link href={content.blogSidebar.cta.href || "/contact"} className="mt-4 inline-block text-xs font-semibold uppercase tracking-[0.18em] text-amber hover:underline">
+                  {content.blogSidebar.cta.label || "Talk to dispatch"} →
                 </Link>
               </div>
             </div>

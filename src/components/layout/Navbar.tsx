@@ -15,7 +15,7 @@ import { Logo } from "./Logo";
 const loadMobileMenu = () => import("./MobileMenu");
 const MobileMenu = dynamic(() => loadMobileMenu().then((m) => m.MobileMenu), { ssr: false });
 
-export type NavSite = Pick<SiteInfo, "name" | "nav" | "phone" | "phoneHref" | "whatsapp">;
+export type NavSite = Pick<SiteInfo, "name" | "nav" | "phone" | "phoneHref" | "whatsapp" | "headerCta" | "menuCta" | "whatsappTooltip">;
 
 export function Navbar({ site }: { site: NavSite }) {
   const { scrolled, progressRef } = useScrollProgress(40);
@@ -75,8 +75,8 @@ export function Navbar({ site }: { site: NavSite }) {
             <a href={site.phoneHref} className="hidden text-[13px] font-medium text-white/70 transition-colors hover:text-amber xl:block">
               {site.phone}
             </a>
-            <Button href="/contact" className="hidden sm:inline-flex">
-              Get Started
+            <Button href={site.headerCta.href} className="hidden sm:inline-flex">
+              {site.headerCta.label}
             </Button>
             <button
               type="button"

@@ -90,6 +90,9 @@ export interface SiteInfo {
   /** Whether to publish round-the-clock opening hours in Google's structured data. */
   open24x7: boolean;
   nav: NavLink[];
+  headerCta: NavLink;
+  menuCta: NavLink;
+  whatsappTooltip: string;
   footer: { headline: string; highlight: string; newsletterLabel: string; bottomLine: string; legalLinks: NavLink[]; image: string | null };
   /** Rate & earnings qualifiers shown next to any per-mile rate or weekly-gross figure. */
   rateDisclaimer: string;
@@ -140,6 +143,28 @@ export interface SiteContentData {
   steps: { title: string; icon: string; body: string }[];
   carrierRequirements: string[];
   pricingComparison: { feature: string; cells: { tierId: number; included: boolean; text: string }[] }[];
+  blogIndex: {
+    eyebrow: string;
+    heading: string;
+    highlight: string;
+    subtitle: string;
+    metaTitle: string;
+    metaDescription: string;
+    ldName: string;
+    ldDescription: string;
+  };
+  blogSidebar: { heading: string; body: string; cta: { label?: string | null; href?: string | null } };
+  servicePage: {
+    heroCta: { label?: string | null; href?: string | null };
+    benefitsLabel: string;
+    benefitsHeading: string;
+    benefitsHighlight: string;
+    pricingHeading: string;
+    pricingHighlight: string;
+    pricingIntro: string;
+    ctaHeading: string;
+    ctaHighlight: string;
+  };
 }
 
 /** One leg of the scroll-scrubbed home hero (FlightScrub) — a processed clip + its poster. */

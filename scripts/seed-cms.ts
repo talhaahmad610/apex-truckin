@@ -155,6 +155,9 @@ async function seedSiteSettings(payload: Payload) {
       hours: COMPANY.hours.map((h) => ({ ...h })),
       socials: { ...COMPANY.socials },
       nav: NAV_LINKS.map((n) => ({ ...n })),
+      headerCta: { label: "Get Started", href: "/contact" },
+      menuCta: { label: "Start Dispatching", href: "/contact" },
+      whatsappTooltip: "Talk to dispatch",
       footerHeadline: "Keep it",
       footerHighlight: "moving.",
       newsletterLabel: "Weekly lane & rate intel",
@@ -313,6 +316,34 @@ async function seedSiteContent(payload: Payload) {
           { tier: ent, included: r.ent === true, text: typeof r.ent === "string" ? r.ent : "" },
         ],
       })),
+      blogIndex: {
+        eyebrow: "Insights",
+        heading: "Dispatch",
+        highlight: "insights",
+        subtitle:
+          "Rate trends, lane strategy, broker negotiation and the regulations that matter — written by dispatchers who work the boards every day.",
+        metaTitle: "Truck Dispatch Blog — Rates, Lanes & Owner-Operator Tips",
+        metaDescription:
+          "Practical truck dispatch insights: how to find better-paying loads, negotiate with brokers, cut deadhead, and grow your owner-operator business.",
+        ldName: "Truck Dispatch Blog",
+        ldDescription: "Rate trends, lane strategy, broker negotiation and regulations for owner-operators and fleets.",
+      },
+      blogSidebar: {
+        heading: "Want better rates?",
+        body: "Get a free lane review from a dispatcher.",
+        cta: { label: "Talk to dispatch", href: "/contact" },
+      },
+      servicePage: {
+        heroCta: { label: "Dispatch My {{Service}}", href: "/contact" },
+        benefitsLabel: "Benefits",
+        benefitsHeading: "Why carriers run {{service}}",
+        benefitsHighlight: "with Apex",
+        pricingHeading: "Straight rates.",
+        pricingHighlight: "No surprises.",
+        pricingIntro: "No contracts, no setup fees, no forced dispatch. Pick the plan that fits your fleet today — switch anytime.",
+        ctaHeading: "Put your {{service}}",
+        ctaHighlight: "to work.",
+      },
     },
   });
   log("site content");

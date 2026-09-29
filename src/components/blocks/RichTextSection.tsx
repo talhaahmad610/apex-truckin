@@ -9,7 +9,7 @@ export function RichTextSection({ content, width, site }: { content: unknown; wi
   return (
     <section className="pb-24 md:pb-36">
       <div className={cn("prose-apex mx-auto px-4 sm:px-8", width === "1100" ? "max-w-[1100px]" : "max-w-[820px]")}>
-        <div dangerouslySetInnerHTML={{ __html: fillTokens(html, site) }} />
+        <div dangerouslySetInnerHTML={{ __html: fillTokens(html, site, undefined, { escape: true }) }} />
       </div>
     </section>
   );

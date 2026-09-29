@@ -8,6 +8,14 @@ export const Notifications: GlobalConfig = {
   access: { read: isAdmin, update: isAdmin },
   fields: [
     {
+      name: "contactSuccessMessage",
+      label: "Contact form success message",
+      type: "textarea",
+      maxLength: 200,
+      defaultValue: "Thanks! A dispatcher will reach out within 1 business hour.",
+      admin: { description: "Shown as the confirmation toast after a visitor submits the contact form." },
+    },
+    {
       name: "leadAlertRecipients",
       label: "Send new-lead alerts to",
       type: "array",
