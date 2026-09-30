@@ -263,6 +263,179 @@ for the full first-run sequence). A few things differ from local dev:
   requests apart by IP and falls back to one shared limit for everyone. Don't set it without a real proxy in front:
   a client that can reach the app directly could then forge its own rate-limit identity.
 
+## Security hardening, Docker & server setup
+
+A security review of the whole app led to one hardening pass (commit `16665bf`). This section covers what changed,
+how the Docker packaging is laid out, how to stand it up on a server step by step, and how secrets are kept out of
+this (public) repo.
+
+### What changed, and why
+
+- **Rate limiting doesn't trust spoofable headers** (`src/lib/http.ts`). A client can send any `X-Forwarded-For`
+  it likes, so with no trusted proxy in front (`TRUST_PROXY` unset) every caller shares one bucket per endpoint.
+  With `TRUST_PROXY=1` behind Caddy/nginx, the rightmost hop, the one the proxy itself appended, is used. The
+  bucket map is capped so a flood can't grow it without bound.
+- **Contact form** (`src/app/api/contact/route.ts`): a second, per-email limit (2/hour) so the branded auto-reply
+  can't be aimed at one inbox repeatedly. The honeypot response is now identical to a real success.
+- **Newsletter** (`src/app/api/newsletter/route.ts`): new, existing and reactivated signups all get the same
+  message and status, so the endpoint can't be used to check whether an email is on the list.
+- **Open-redirect guard** is one shared `safePath()` used by both preview routes, and it now also rejects control
+  characters and whitespace (`/%09/evil.com`-style tricks). `/api/revalidate` only accepts plain site paths.
+- **`BLOG_API_KEY`** is rejected if it's short or still a placeholder (`replace_with_…` / `your_…`), so a
+  deployment that forgot to set it can't ship a guessable key.
+- **ffmpeg/ffprobe** (`src/lib/footage.ts`) run with `-protocol_whitelist file`, so an uploaded file can't make
+  them read other local files or fetch URLs from inside its own contents (crafted HLS/concat lists).
+- **Snapshot restore** (`scripts/snapshot.ts`) refuses any key that would land outside `snapshot/media/`, and only
+  restores known-safe content types, so nothing scriptable can end up served from the media origin.
+  `scripts/db-restore.sh` restores in a single transaction, so a failure can't leave a half-restored database.
+- **Docker defaults:** the app port binds to `127.0.0.1` (`APP_BIND`); MinIO CORS is limited to the site's origin
+  instead of `*`; `media-restore` no longer receives the app's secrets and mounts `snapshot/` read-only;
+  `.dockerignore` keeps `snapshot/`, docs and scan output out of image layers.
+- **Startup warning** (`src/instrumentation.ts`): a production boot that still has dev passwords, a placeholder
+  `PAYLOAD_SECRET`, or no `TRUST_PROXY` logs a clear warning. It never blocks startup.
+
+### Docker architecture
+
+**The app is a multi-stage image** (`Dockerfile`). Each stage builds on the last, and only the final one ships:
+
+| Stage | Built from | What it holds | Deployed? |
+|---|---|---|---|
+| `deps` | `node:22-alpine` | `npm ci` — every dependency | No |
+| `tools` | `deps` | Full source + dependencies, for one-off `migrate` / `seed` / `footage` / `snapshot:import` | No |
+| `builder` | `tools` | Runs `next build` into a standalone server — no database or secrets needed | No |
+| `runner` | fresh `node:22-alpine` | Standalone server + static files + `public/` + ffmpeg, running as non-root `node`, with a health check | **Yes** |
+
+Measured on a real build: the deployed image (`apex-truckin-app`, the `runner` stage) is **662 MB**, and
+`apex-truckin:tools` is **2.28 GB**. Inside the running app container there's no `src/`, no `.env` file of any
+kind, only the 91 packages Next's standalone output actually imports (not the full `node_modules`), ffmpeg 8.1, and
+the process runs as the unprivileged `node` user.
+
+**Postgres runs in its own container**: the official `postgres:17-alpine` image, with data in the named volume
+`pgdata` (it survives restarts and rebuilds), its port bound to `127.0.0.1:5432` only, and a `pg_isready` health
+check the app waits on. The full compose graph (`docker-compose.yml` + `docker-compose.app.yml`, always loaded
+together by `scripts/compose.sh`):
+
+```
+postgres (postgres:17-alpine, volume pgdata) ──healthy──► db-restore     one-off: snapshot/db.dump → empty DB only
+                                                  │
+S3 (lead dev's endpoint; local: minio) ──────────► media-restore  one-off: snapshot/media → empty bucket only
+                                                  │
+                                                  ▼
+                                   app (runner image, 127.0.0.1:3200 → :3000)
+
+tools (profile "tools")  — run on demand: seed / migrate / footage
+minio + minio-init (profile "minio") — local dev only, never on a server
+```
+
+### Server setup, step by step
+
+**You need:** a Linux VPS with Docker Engine + the Compose plugin, a domain pointed at it, and the lead dev's
+S3-compatible endpoint (bucket name, access key, secret, public URL). No Node, npm or ffmpeg on the server.
+
+1. **Get the code and the env files:**
+
+   ```bash
+   git clone https://github.com/talhaahmad610/apex-truckin.git && cd apex-truckin
+   cp .env.example .env.local
+   cp .env.docker.example .env.docker
+   ```
+
+2. **Generate real secrets.** Every value in the example files is either a placeholder or a local throwaway. Make
+   fresh ones on the server, one per value:
+
+   ```bash
+   openssl rand -hex 32   # run once each for PAYLOAD_SECRET and BLOG_API_KEY
+   openssl rand -hex 24   # run once for the Postgres password
+   ```
+
+3. **Fill in `.env.local`** (app secrets):
+   - `PAYLOAD_SECRET`, `BLOG_API_KEY` — the generated values.
+   - `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` — the first admin, created automatically on first boot. The
+     password must be 12+ characters and not the placeholder, or no admin is created.
+   - `RESEND_API_KEY`, `EMAIL_FROM` — **optional.** With a Resend key (and a verified sending domain) the site
+     emails a lead alert, the visitor's auto-reply, and admin password resets. Without it the site works the same,
+     but those emails are only written to the app log; check new leads in `/admin`.
+   - `BLOG_API_KEY` — optional. Leave it empty to keep the external blog-posting API (`x-api-key`) switched off.
+   - Leave `DATABASE_URI` / `S3_*` here alone; `.env.docker` overrides them inside the containers.
+
+4. **Fill in `.env.docker`** (infrastructure):
+   - `NEXT_PUBLIC_SITE_URL=https://your-domain.com`, and `S3_PUBLIC_URL` = the bucket's public HTTPS URL. Both are
+     baked into the image at build time, so set them **before** the first build.
+   - `POSTGRES_PASSWORD` = the generated password, and the **same** password inside `DATABASE_URI`
+     (`postgres://apex:<password>@postgres:5432/apex_truckin`). Postgres only reads it the first time its volume
+     is created; changing it later means changing it inside Postgres too.
+   - `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION` — the lead dev's endpoint.
+   - `TRUST_PROXY=1` (a reverse proxy is set up in step 6). Leave `APP_BIND` empty, so the app stays on loopback.
+   - Lock both files down: `chmod 600 .env.local .env.docker`.
+
+5. **Build and start:**
+
+   ```bash
+   sh scripts/compose.sh up -d --build
+   ```
+
+   The first boot restores the committed snapshot into the empty database and bucket, applies migrations, and
+   creates the admin. Don't pass `--profile minio` on a server. The build downloads the site's two Google fonts,
+   so the server needs outbound internet while building. If it fails with `Failed to fetch … from Google Fonts`,
+   the network was slow; just re-run the command.
+
+6. **Put HTTPS in front.** The app only listens on `127.0.0.1:3200`, so a reverse proxy on the same host is the
+   only way in. A minimal Caddy setup (it gets and renews the TLS certificate itself):
+
+   ```
+   # /etc/caddy/Caddyfile
+   your-domain.com {
+       reverse_proxy 127.0.0.1:3200
+   }
+   ```
+
+   Then `sudo systemctl reload caddy`. Only ports 80/443 need to be open in the firewall. Never expose 3200, 5432
+   or a MinIO console port.
+
+7. **Check it:**
+
+   ```bash
+   sh scripts/compose.sh ps                   # app "healthy", postgres "healthy", db-restore/media-restore exited 0
+   sh scripts/compose.sh logs app | grep -iE "suspicious config|ensure-admin"
+   ```
+
+   There should be no `suspicious config` warning, and one `[ensure-admin] created admin user` line. Then open
+   `https://your-domain.com` and log into `/admin`.
+
+**Updating later:** `git pull && sh scripts/compose.sh up -d --build`. The restores are no-ops once data exists, so
+this never overwrites content edited in the admin. **Backups:** see [Backups](#backups).
+
+### Keeping secrets out of this public repo
+
+- Only `.env.example` and `.env.docker.example` are committed, and they hold placeholders or local throwaway values
+  (`apex_dev_password`, `apex_minio_dev_password`). Real `.env.local` / `.env.docker` files are ignored by `.env*`
+  in `.gitignore`, and neither has ever been committed.
+- `snapshot/db.dump` ships the **schema only** for `users`, sessions, `leads`, `subscribers` and Payload's internal
+  tables (`scripts/db-export.sh`), so it never contains a password hash, a session or a visitor's contact details.
+- `tool-results/` (local security-scan output) is ignored and is never needed to build or deploy.
+- Use a different `PAYLOAD_SECRET` per environment. If any secret is ever pasted somewhere public (an issue, a chat,
+  a commit), rotate it; deleting it afterwards doesn't un-publish it.
+
+### How this was verified
+
+- `npm run typecheck`, `npm run lint` (no new warnings) and `npm run build` all pass.
+- Fresh, empty Postgres and MinIO volumes were filled through the repo's own restore path: `db-restore` succeeded
+  in one transaction, and `media-restore` uploaded all 66 objects.
+- In a real browser (playwright-cli) against the dev server:
+  - All 13 public pages render with no console errors or broken images, on desktop and on a 360px mobile viewport.
+  - A contact-form submission is stored as a lead and shows in `/admin`.
+  - The newsletter gives the same response for a new and a repeat email.
+  - `/api/preview/exit?path=//evil.com` redirects to `/`.
+  - The admin login works with the account created at boot.
+- Against the real Docker stack (`npm run docker:up`):
+  - The `runner` image built, and the `app` container reported **healthy**, published on `127.0.0.1:3200` only.
+  - `db-restore` / `media-restore` exited 0 (no-ops against existing data, as designed).
+  - The home, service, blog, blog post, contact and `/admin/login` pages all returned 200 in a browser, with no
+    console errors or broken images.
+  - Neither image contains a real `.env` file, `tool-results/` or `snapshot/`; only the `.example` env files ship
+    in `tools`.
+- The committed history has no real secret value, private key, API token or password hash in any commit.
+
 ## API
 
 - **Public site routes:** `POST /api/contact`, `POST /api/newsletter` (validated, rate-limited, honeypot-protected).
