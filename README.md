@@ -352,10 +352,19 @@ S3-compatible endpoint (bucket name, access key, secret, public URL). No Node, n
    - `PAYLOAD_SECRET`, `BLOG_API_KEY` — the generated values.
    - `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` — the first admin, created automatically on first boot. The
      password must be 12+ characters and not the placeholder, or no admin is created.
-   - `RESEND_API_KEY`, `EMAIL_FROM` — **optional.** With a Resend key (and a verified sending domain) the site
-     emails a lead alert, the visitor's auto-reply, and admin password resets. Without it the site works the same,
-     but those emails are only written to the app log; check new leads in `/admin`.
-   - `BLOG_API_KEY` — optional. Leave it empty to keep the external blog-posting API (`x-api-key`) switched off.
+   - `RESEND_API_KEY`, `EMAIL_FROM` — **required.** All email goes through Resend: the new-lead alert to your team,
+     the visitor's auto-reply, and admin password resets. Without a key none of it is sent (it's only written to
+     the app log). To set it up:
+     1. Create an account at resend.com and add your domain (e.g. `apextruckin.com`).
+     2. Add the DNS records Resend shows you at your domain provider, and wait until the domain shows **Verified**.
+     3. Create an API key with **Sending access** only, and put it in `RESEND_API_KEY`.
+     4. Set `EMAIL_FROM` to an address on that verified domain, e.g. `dispatch@apextruckin.com`.
+   - `BLOG_API_KEY` — optional. It's a key you generate yourself (`openssl rand -hex 32`, not from any service) so
+     an outside tool (an automation or script) can create, edit or delete blog posts through
+     `POST /api/posts` and `PUT`/`DELETE /api/posts/:slug` by sending `x-api-key: <key>`. Reading posts needs no
+     key. If posts are written in `/admin`, leave it empty and that write access stays off. For a tool that does
+     need it, prefer a per-user key instead: tick "Enable API key" on an admin user in `/admin`, and send it as
+     `Authorization: users API-Key <key>`. It can be revoked per user.
    - Leave `DATABASE_URI` / `S3_*` here alone; `.env.docker` overrides them inside the containers.
 
 4. **Fill in `.env.docker`** (infrastructure):
@@ -401,6 +410,15 @@ S3-compatible endpoint (bucket name, access key, secret, public URL). No Node, n
 
    There should be no `suspicious config` warning, and one `[ensure-admin] created admin user` line. Then open
    `https://your-domain.com` and log into `/admin`.
+
+8. **Turn on lead emails.** In `/admin` → **Email notifications**, add the addresses under "Send new-lead alerts
+   to", and switch on "Auto-reply to the carrier" if you want visitors to get a confirmation. Submit a test
+   message through the contact form and check that the alert arrives. If it doesn't, look for `[notify]` lines in
+   `sh scripts/compose.sh logs app`.
+
+`RESEND_API_KEY` and the other `.env.local` values are read when the app starts, not baked into the image, so
+changing them later only needs a restart: `sh scripts/compose.sh up -d`. Only `NEXT_PUBLIC_SITE_URL` and the
+`S3_PUBLIC_URL` / `S3_BUCKET` build args need a rebuild (`--build`).
 
 **Updating later:** `git pull && sh scripts/compose.sh up -d --build`. The restores are no-ops once data exists, so
 this never overwrites content edited in the admin. **Backups:** see [Backups](#backups).
