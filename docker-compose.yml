@@ -37,8 +37,13 @@ services:
       MINIO_ROOT_USER: apex_minio
       MINIO_ROOT_PASSWORD: apex_minio_dev_password
       # FlightScrub fetches processed hero clips as blobs (`fetch()`, not a <video src>), and in dev
-      # MinIO is a different origin (127.0.0.1:9000) from the site (localhost:3200) — needs CORS.
-      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+      # MinIO is a different origin (127.0.0.1:9000) from the site (localhost:3200) — needs CORS, but
+      # scoped to the site's own origin rather than "*". Not NEXT_PUBLIC_SITE_URL: `infra:up` doesn't
+      # pass --env-file, and compose only auto-loads a root .env (this repo has none), so that
+      # variable would never actually be set here — override LOCAL_SITE_URL directly if your dev
+      # server runs somewhere other than the default port. On a real server this service doesn't run
+      # at all (profiles: [minio]) — the lead dev's own S3 endpoint should allow only the site origin.
+      MINIO_API_CORS_ALLOW_ORIGIN: ${LOCAL_SITE_URL:-http://localhost:3200}
     ports:
       - "127.0.0.1:9000:9000" # S3 API
       - "127.0.0.1:9001:9001" # web console

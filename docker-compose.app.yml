@@ -21,7 +21,11 @@ services:
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
     ports:
-      - "${APP_PORT:-3200}:3000"
+      # Bound to loopback by default — a server puts a reverse proxy (with TLS) in front and never
+      # exposes the app directly; Docker's port publishing bypasses the host firewall, so an
+      # unrestricted bind here would stay reachable over plain HTTP even behind one. Override
+      # APP_BIND=0.0.0.0 only for a deliberate LAN-reachable test with no proxy involved.
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-3200}:3000"
     restart: unless-stopped
     depends_on:
       postgres:
@@ -54,11 +58,13 @@ services:
     build:
       context: .
       target: tools
+    # Only .env.docker: scripts/snapshot.ts talks to S3 directly (see its imports) and never loads
+    # payload.config.ts, so it has no use for .env.local's app secrets (PAYLOAD_SECRET, Resend,
+    # BLOG_API_KEY, SEED_ADMIN_*) — no reason for this container to see them at all.
     env_file:
-      - .env.local
       - .env.docker
     volumes:
-      - ./snapshot:/app/snapshot
+      - ./snapshot:/app/snapshot:ro
     command: ["npm", "run", "snapshot:import"]
     depends_on:
       # Only present locally (`profiles: [minio]` in docker-compose.yml) — `required: false` means

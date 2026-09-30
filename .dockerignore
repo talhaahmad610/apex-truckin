@@ -2,6 +2,7 @@ node_modules
 .next
 .git
 .playwright-cli
+.claude
 .env*
 !.env.example
 !.env.docker.example
@@ -12,3 +13,12 @@ tool-results
 npm-debug.log*
 .DS_Store
 coverage
+# Bind-mounted at runtime by docker-compose.app.yml's db-restore/media-restore — never needed
+# baked into any image layer, and the tools/builder stages otherwise COPY it in wholesale
+# (Dockerfile's `COPY . .`), which would put the committed dump/media mirror inside a layer with
+# no reason to carry it.
+snapshot
+# Documentation/agent-instruction files with no runtime purpose.
+*.md
+!assets/*.md
+postman_collection.json

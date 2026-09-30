@@ -9,6 +9,11 @@ export const dynamic = "force-dynamic";
 // running from cron has none — so the hero-video job calls this route over HTTP instead of
 // calling them in-process (where they'd throw and be silently swallowed).
 const ALLOWED_TAGS = new Set(["home", "flight", "pages", "settings", "content"]);
+// Every path this route is ever asked to revalidate is a plain site route (no query string,
+// fragment, or scheme-relative form) — this is the token holder trusting itself, not user input,
+// but shaping it this tightly means a leaked token can't be used to revalidate arbitrary/expensive
+// paths outside the site.
+const SAFE_PATH = /^\/[\w\-/]*$/;
 
 /** POST /api/revalidate — internal only, guarded by a token derived from PAYLOAD_SECRET. */
 export async function POST(req: NextRequest) {
@@ -23,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (typeof t === "string" && ALLOWED_TAGS.has(t)) revalidateTag(t, { expire: 0 });
   }
   for (const p of Array.isArray(paths) ? paths : []) {
-    if (typeof p === "string" && p.startsWith("/")) revalidatePath(p);
+    if (typeof p === "string" && SAFE_PATH.test(p)) revalidatePath(p);
   }
 
   return json({ ok: true });

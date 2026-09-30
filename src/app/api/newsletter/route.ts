@@ -27,23 +27,25 @@ export async function POST(req: NextRequest) {
     });
     const current = existing.docs[0];
     if (current) {
-      // Re-subscribing after an unsubscribe reactivates; otherwise it's a no-op.
+      // Re-subscribing after an unsubscribe reactivates; otherwise it's a no-op. Same response
+      // either way (and the same one a brand-new signup gets, below) — an identical message/status
+      // for "new" vs "already subscribed" vs "reactivated" means the endpoint can't be used to
+      // probe which emails are already on the list.
       if (current.status !== "active") {
         await payload.update({ collection: "subscribers", id: current.id, data: { status: "active" }, overrideAccess: true });
-        return json({ message: SUBSCRIBED }, 200);
       }
-      return json({ message: "You're already subscribed — thanks!" }, 200);
+      return json({ message: SUBSCRIBED }, 200);
     }
     await payload.create({
       collection: "subscribers",
       overrideAccess: true,
       data: { email, status: "active", source: result.data.source_path || null },
     });
-    return json({ message: SUBSCRIBED }, 201);
+    return json({ message: SUBSCRIBED }, 200);
   } catch (err) {
     // Two simultaneous signups for the same email: the unique index rejects the second insert.
     if ((err as { name?: string }).name === "ValidationError") {
-      return json({ message: "You're already subscribed — thanks!" }, 200);
+      return json({ message: SUBSCRIBED }, 200);
     }
     console.error("[newsletter] failed to subscribe", err);
     return error(500, "Failed to subscribe");

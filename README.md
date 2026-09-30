@@ -66,6 +66,11 @@ The whole app — Next.js + Payload, ffmpeg baked in, no `node_modules` in the s
 multi-stage Docker image, with Postgres in its own container. This is the same path for local Docker use and for a
 real server; only `.env.docker` differs between them.
 
+Two images get built: `apex-truckin:tools` (full source + every dependency — only used for one-shot commands like
+`migrate`/`seed`/`footage`, never deployed) and the `runner` stage, which is what `app` actually runs. Only push or
+deploy the `runner`-stage image; `tools` is meant to stay local/CI-internal — it's much larger and carries the full
+source tree.
+
 **First time, local:**
 
 ```bash
@@ -215,7 +220,11 @@ this shouldn't happen going forward — but if it does, delete that row from the
 
 `npm run snapshot:export` (see [Run it in Docker](#run-it-in-docker)) is the one command that captures both the
 database and the media bucket together, in the format the automatic restore expects — prefer it over ad hoc
-one-off backups. The two halves it runs, if you ever need them separately:
+one-off backups. It deliberately **excludes credentials and visitor data** (`users`, `leads`, `subscribers`, and
+Payload's own internal preferences/jobs tables — see `scripts/db-export.sh`), so the committed `snapshot/db.dump`
+never carries a password hash or a lead's contact info. A raw `pg_dump` for your own manual backup purposes does
+carry that data, so treat any file made the way below as sensitive — don't commit it, and encrypt it at rest if you
+store it anywhere:
 
 - **Database:** `docker compose exec postgres pg_dump -U apex -Fc apex_truckin > backup.dump`.
 - **Media/hero footage:** `npm run snapshot:export` writes `snapshot/media/` via the S3 API (works against any
@@ -230,7 +239,9 @@ for the full first-run sequence). A few things differ from local dev:
 
 - `NEXT_PUBLIC_SITE_URL` and `S3_PUBLIC_URL` in `.env.docker` point at real hostnames, with HTTPS. `S3_*` points at
   the lead dev's own S3-compatible endpoint — this repo's `minio` service is local-dev-only and is never started
-  (no `--profile minio`) or depended on there.
+  (no `--profile minio`) or depended on there; never pass `--profile minio` on a server.
+  Ask the lead dev to scope that endpoint's CORS to this deployment's own origin (not `*`), and to never publish a
+  MinIO console port (`:9001` in this repo's own compose file) to the internet.
 - Set `INTERNAL_SITE_URL` only if the app container genuinely can't reach its own public URL — the hero-footage job
   calls back into `/api/revalidate` after each clip finishes; the default (the container's own loopback) covers the
   normal case.
@@ -240,8 +251,17 @@ for the full first-run sequence). A few things differ from local dev:
   endpoint refuses.
 - Verify a sending domain with Resend before production emails go out.
 - Every secret in `.env.example`/`.env.docker.example` needs a real, unique production value — the ones there are
-  local throwaway credentials only.
-- Put a reverse proxy (Caddy/Nginx) in front of the app's published port for TLS.
+  local throwaway credentials only. Use a different `PAYLOAD_SECRET` per environment (it signs admin sessions and
+  the `/api/revalidate` token — the dev value must never reach a server); set `SEED_ADMIN_PASSWORD` to a real,
+  strong password before the first boot (the restored database ships with zero users — see
+  [Run it in Docker](#run-it-in-docker) — so this is genuinely the account that gets created).
+- Put a reverse proxy (Caddy/Nginx) in front of the app for TLS. `docker-compose.app.yml` binds the app's port to
+  `127.0.0.1` by default (`APP_BIND`) specifically so nothing but that proxy can reach it directly — Docker's port
+  publishing bypasses the host firewall, so this matters even if you also have `ufw`/`iptables` rules.
+- Set `TRUST_PROXY=1` once that proxy is in place and configured to set `X-Forwarded-For` itself (Caddy and nginx
+  both do this by default) — otherwise the contact-form/newsletter rate limiting (`src/lib/http.ts`) can't tell
+  requests apart by IP and falls back to one shared limit for everyone. Don't set it without a real proxy in front:
+  a client that can reach the app directly could then forge its own rate-limit identity.
 
 ## API
 

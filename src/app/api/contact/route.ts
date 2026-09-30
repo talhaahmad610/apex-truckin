@@ -31,8 +31,16 @@ export async function POST(req: NextRequest) {
   const { company_website, source_path, ...v } = result.data;
   const payload = await getPayloadClient();
 
-  // Honeypot filled → pretend success, store nothing.
-  if (company_website) return json({ message: await successMessage(payload) }, 201);
+  // A second, per-email cap (independent of the per-IP one above): the auto-reply is sent to
+  // whatever address is submitted, so without this an attacker with many IPs (or one IP under
+  // TRUST_PROXY=0) could aim the site's branded auto-reply email at one address repeatedly.
+  if (!rateLimit(req, `contact:email:${v.email.toLowerCase()}`, 2, 60 * 60_000)) {
+    return error(429, "Too many requests — please wait a minute and try again");
+  }
+
+  // Honeypot filled → identical response to the real success path (stored: true) — nothing is
+  // actually stored, but a bot probing the shape of the response can't tell the two apart.
+  if (company_website) return json({ message: await successMessage(payload), stored: true }, 201);
 
   const path = source_path || "/";
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || null;

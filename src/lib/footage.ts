@@ -35,17 +35,25 @@ export function preFilter(fps: number, extra: string): string {
   return `fps=${fps},${extra}${GRADE}`;
 }
 
+// Every input here is always a local temp file this job created itself (never a URL from the
+// upload), but ffmpeg/ffprobe will happily follow other protocols an input FILE'S CONTENTS can
+// reference — a crafted HLS playlist or "concat:" list is a known local-file-read/SSRF vector even
+// when the top-level argument looks like a plain path. Restricting to the `file` protocol closes
+// that off regardless of what's inside an uploaded file.
+const PROTOCOL_WHITELIST = ["-protocol_whitelist", "file"];
+
 export function probeDurationArgs(file: string): string[] {
-  return ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", file];
+  return [...PROTOCOL_WHITELIST, "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", file];
 }
 
 /** ffprobe: video-stream presence + dimensions, used to reject a non-video upload before encoding. */
 export function probeStreamArgs(file: string): string[] {
-  return ["-v", "error", "-show_entries", "stream=width,height,codec_type:format=duration", "-of", "json", file];
+  return [...PROTOCOL_WHITELIST, "-v", "error", "-show_entries", "stream=width,height,codec_type:format=duration", "-of", "json", file];
 }
 
 export function desktopArgs(opts: { src: string; ss: number; dur: number; extra: string; fps: number; out: string }): string[] {
   return [
+    ...PROTOCOL_WHITELIST,
     "-ss",
     String(opts.ss),
     "-t",
@@ -67,6 +75,7 @@ export function desktopArgs(opts: { src: string; ss: number; dur: number; extra:
 
 export function mobileArgs(opts: { src: string; ss: number; dur: number; extra: string; fps: number; out: string }): string[] {
   return [
+    ...PROTOCOL_WHITELIST,
     "-ss",
     String(opts.ss),
     "-t",
@@ -87,7 +96,7 @@ export function mobileArgs(opts: { src: string; ss: number; dur: number; extra: 
 }
 
 export function posterArgs(video: string, out: string): string[] {
-  return ["-i", video, "-frames:v", "1", "-c:v", "libwebp", "-quality", "72", out];
+  return [...PROTOCOL_WHITELIST, "-i", video, "-frames:v", "1", "-c:v", "libwebp", "-quality", "72", out];
 }
 
 // --- binary resolution: $FFMPEG_BIN dir → PATH → WinGet Gyan.FFmpeg install. ---

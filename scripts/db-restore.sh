@@ -20,5 +20,9 @@ if [ ! -f "$SNAPSHOT_FILE" ]; then
 fi
 
 echo "[db-restore] restoring $SNAPSHOT_FILE ..."
-pg_restore --no-owner --no-privileges --dbname "$DATABASE_URI" "$SNAPSHOT_FILE"
+# --single-transaction + --exit-on-error: an error partway through rolls back everything instead of
+# leaving a half-restored database — in particular, one where payload_migrations already exists
+# (which would make every future boot see "already initialized" and skip the restore forever,
+# permanently stuck in that half state).
+pg_restore --no-owner --no-privileges --single-transaction --exit-on-error --dbname "$DATABASE_URI" "$SNAPSHOT_FILE"
 echo "[db-restore] done"
